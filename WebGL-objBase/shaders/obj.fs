@@ -20,9 +20,9 @@ float clampedDot(vec3 a, vec3 b){
 
 
 // ==============================================
-float fresnel(vec3 m){
+float fresnel(vec3 i, vec3 m){
 
-	float c = dot(lightSource, m);
+	float c = dot(i, m);
 	float g = sqrt(uRefract*uRefract + c*c - 1.0);
 
 	float gPc = g+c;
@@ -44,6 +44,20 @@ float beckmann(vec3 m, vec3 N){
 	float denom = 3.14*sigma2*square(cosTheta2);
 
 	return 1.0/denom * e;
+}
+
+
+// ==============================================
+float walter_ggx(vec3 m, vec3 N){
+
+	float cosTheta  = dot(N, normalize(m));
+	float cosTheta2 = square(cosTheta);
+	float tanTheta2 = (1.0 - cosTheta2)/cosTheta2;
+	float sigma2    = square(uSigma);
+
+	float denom = 3.14 * square(cosTheta2) * square((sigma2 + tanTheta2));
+	
+	return sigma2/denom;
 }
 
 
@@ -71,9 +85,9 @@ void main(void)
 	float iN = clampedDot(i, N);
 	float oN = clampedDot(o, N);
 
-	if(iN != 0.0 || oN != 0.0){
-		float F = fresnel(m);
-		float D = beckmann(m, N);
+	if(iN >= 0.0 || oN >= 0.0){
+		float F = fresnel(i,m);
+		float D = walter_ggx(m, N);
 		float G = masquage(m, N, i, o);
 
 		float cookTorance = F*D*G / 4.0*iN*oN;

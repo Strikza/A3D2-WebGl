@@ -18,8 +18,7 @@ var gui = {
          "bunny", 
          "mustang", 
          "porsche", 
-         "sphere",
-         "porygon"
+         "sphere"
       ], 
       mesh: null, 
       text: "Choisissez un objet"
