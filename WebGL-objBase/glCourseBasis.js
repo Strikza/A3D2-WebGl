@@ -182,7 +182,7 @@ function drawScene() {
 	gl.clear(gl.COLOR_BUFFER_BIT);
 	
 	SKYBOX.draw();
-	PLANE.draw();
+	//PLANE.draw();
 	OBJ1.draw();
 }
 

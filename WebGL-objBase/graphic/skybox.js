@@ -13,29 +13,59 @@ class skybox {
         this.url_box    = './textures/skybox_1/';
         this.texture    = null;
         
-        loadShaders(this);
 		this.initAll();
+        loadShaders(this);
 	}
 		
 	// --------------------------------------------
 	initAll() {
 		var size=50.0;
         var vertices = [
-             size, -size, -size,    size,  size, -size,    size,  size,  size,    size, -size,  size,     /*Sol*/     /*Plafond*/
-            -size, -size,  size,   -size,  size,  size,    size,  size,  size,    size, -size,  size,     /*Plafond*/
-            -size, -size,  size,    size, -size,  size,    size, -size, -size,   -size, -size, -size,     /*Devant*/
-            -size,  size,  size,    size,  size,  size,    size,  size, -size,   -size,  size, -size,     /*Arrière*/
-            -size,  size,  size,   -size, -size,  size,   -size, -size, -size,   -size,  size, -size,     /*Gauche*/
-             size, -size,  size,    size,  size,  size,    size,  size, -size,    size, -size, -size,     /*Droite*/
+            //Right
+             size, -size, -size,  //0
+             size,  size, -size,  //1  
+             size,  size,  size,  //2
+             size, -size,  size,  //3
+            //Left
+            -size, -size,  size,  //4
+            -size,  size,  size,  //5 
+            -size,  size, -size,  //6
+            -size, -size, -size,  //7
+            //Top
+            -size,  size, -size,  //8 
+            -size,  size,  size,  //9 
+             size,  size,  size,  //10
+             size,  size, -size,  //11
+            //Bottom
+            -size, -size,  size,  //12
+            -size, -size, -size,  //13 
+             size, -size, -size,  //14
+             size, -size,  size,  //15  
+            //Back
+            -size, -size, -size,  //16
+            -size,  size, -size,  //17
+             size,  size, -size,  //18
+             size, -size, -size,  //19  
+            //Front
+             size, -size,  size,  //20
+             size,  size,  size,  //21
+            -size,  size,  size,  //22
+            -size, -size,  size   //23
         ];
 
         var indices = [
-             0,  3,  2,     2,  1,  0,     /*Sol*/     /*Plafond*/
-             4,  5,  6,     7,  4,  6,     /*Plafond*/
-             9, 11,  8,    10, 11,  9,     /*Devant*/
-            12, 14, 13,    14, 12, 15,     /*Arrière*/
-            17, 18, 16,    18, 19, 16,     /*Gauche*/
-            21, 23, 20,    23, 21, 22      /*Droite*/
+            //Right
+            0,3,1,      2,1,3,
+            //Left
+            4,7,5,      6,5,7,
+            //Top
+            8,11,9,     10,9,11,
+            //Bottom
+            12,15,13,   14,13,15,
+            //Back
+            16,19,17,   18,17,19,
+            //Front
+            20,23,21,   22,21,23
         ];
 
 		this.vBuffer = gl.createBuffer();
@@ -46,7 +76,7 @@ class skybox {
 
 		this.iBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.iBuffer);
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Float32Array(indices), gl.STATIC_DRAW);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new  Uint16Array(indices), gl.STATIC_DRAW);
 		this.iBuffer.itemSize = 1;
 		this.iBuffer.numItems = indices.length;
 
@@ -60,17 +90,28 @@ class skybox {
         this.texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
 
-        for(let i=0; i<6; i++){
-            var texImage = new Image();
-            texImage.src = this.url_box + i + '.png';
+        const faceInfos = [
+			{target: gl.TEXTURE_CUBE_MAP_POSITIVE_X, url:this.url_box+"/0.png"},
+			{target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X, url:this.url_box+"/1.png"},
+			{target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y, url:this.url_box+"/2.png"},
+			{target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, url:this.url_box+"/3.png"},
+			{target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z, url:this.url_box+"/5.png"},
+			{target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, url:this.url_box+"/4.png"},
+		];
 
-            texImage.onload = function () {
-                gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                    0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texImage);
-                    console.log(this.texLoaded)
-            }
-        }
+		faceInfos.forEach((faceInfo) => {
+			const {target, url} = faceInfo;
+		
+			const image = new Image();
+			image.src = url;
+			image.addEventListener('load', ()=> {
+				gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
+				gl.texImage2D(target, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+				gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+			});
+		});
 
+		gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -96,7 +137,7 @@ class skybox {
      // --------------------------------------------
 	setUniforms() {
 		mat4.identity(mvMatrix);
-		// mat4.translate(mvMatrix, distCENTER);
+		mat4.translate(mvMatrix, distCENTER);
 		mat4.multiply(mvMatrix, rotMatrix);
 
 		gl.uniformMatrix4fv(this.shader.mvMatrixUniform, false, mvMatrix);
@@ -108,8 +149,7 @@ class skybox {
 
     // --------------------------------------------
 	draw() {
-		if(this.shader && this.loaded==4 && this.texLoaded == 6) {
-            console.log("oyu")
+		if(this.shader && this.loaded==4 ) {
 			this.setShadersParams();
 			this.setUniforms();
 
