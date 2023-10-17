@@ -3,15 +3,15 @@
 var gl;
 
 // =====================================================
-var mvMatrix = mat4.create();
-var lMatrix = mat4.create();
-var pMatrix = mat4.create();
-var rotMatrix = mat4.create();
-var lightSource = null;
+var mvMatrix    = mat4.create();
+var lMatrix     = mat4.create();
+var pMatrix     = mat4.create();
+var rotMatrix   = mat4.create();
+var lightSource = vec3.create([0, 0, -3]);
 var distCENTER;
 
 // =====================================================
-var OBJ1 = null;
+var OBJ1  = null;
 var PLANE = null;
 
 
@@ -19,7 +19,6 @@ var PLANE = null;
 // =====================================================
 // FONCTIONS GENERALES, INITIALISATIONS
 // =====================================================
-
 
 // =====================================================
 function initGL(canvas)
@@ -41,6 +40,7 @@ function initGL(canvas)
 }
 
 
+// =====================================================
 function setOBJ(name) {
 	OBJ1 = new objmesh('./objects/'+ name +'.obj');
 	gui.color.mesh = OBJ1;
@@ -130,21 +130,20 @@ function webGLStart() {
 	
 	var canvas = document.getElementById("WebGL-test");
 
-	canvas.onmousedown = handleMouseDown;
-	document.onmouseup = handleMouseUp;
+	canvas.onmousedown   = handleMouseDown;
+	canvas.onwheel       = handleMouseWheel;
+	document.onmouseup   = handleMouseUp;
 	document.onmousemove = handleMouseMove;
-	canvas.onwheel = handleMouseWheel;
 
 	initGL(canvas);
 	initGui();
 
-	mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+	mat4.perspective(45, gl.viewportWidth/gl.viewportHeight, 0.1, 100.0, pMatrix);
 	mat4.identity(rotMatrix);
 	mat4.rotate(rotMatrix, rotX, [1, 0, 0]);
 	mat4.rotate(rotMatrix, rotY, [0, 0, 1]);
 
 	distCENTER = vec3.create([0,-0.2,-3]);
-	lightSource = vec3.create([2, 0.5, -3]);
 	
 	PLANE = new plane();
 
@@ -157,8 +156,8 @@ function webGLStart() {
 // =====================================================
 function drawScene() {
 	gl.clear(gl.COLOR_BUFFER_BIT);
-	PLANE.draw();
 
+	PLANE.draw();
 	OBJ1.draw();
 }
 

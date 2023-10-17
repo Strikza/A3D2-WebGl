@@ -1,9 +1,8 @@
 
-
 // =====================================================
 // Mouse management
 // =====================================================
-var mouseDown = false;
+var mouseDown  = false;
 var lastMouseX = null;
 var lastMouseY = null;
 var rotY = 0;
@@ -12,11 +11,11 @@ var rotX = -1;
 // =====================================================
 window.requestAnimFrame = (function()
 {
-	return window.requestAnimationFrame ||
+	return window.requestAnimationFrame     ||
          window.webkitRequestAnimationFrame ||
-         window.mozRequestAnimationFrame ||
-         window.oRequestAnimationFrame ||
-         window.msRequestAnimationFrame ||
+         window.mozRequestAnimationFrame    ||
+         window.oRequestAnimationFrame      ||
+         window.msRequestAnimationFrame     ||
          function(/* function FrameRequestCallback */ callback,
 									/* DOMElement Element */ element)
          {
@@ -24,7 +23,7 @@ window.requestAnimFrame = (function()
          };
 })();
 
-// ==========================================
+// =====================================================
 function tick() {
 	requestAnimFrame(tick);
 	drawScene();
@@ -38,8 +37,12 @@ function degToRad(degrees) {
 
 // =====================================================
 function handleMouseWheel(event) {
-
-	distCENTER[2] -= event.deltaY/1000.0;
+	if(!gui.lockLight.value){
+		lightSource[2] += event.deltaY/100.0;;
+	}
+	else{
+		distCENTER[2] -= event.deltaY/1000.0;
+	}
 }
 
 // =====================================================
@@ -67,15 +70,26 @@ function handleMouseMove(event) {
 	var deltaY = newY - lastMouseY;
 	
 	if(event.shiftKey) {
-		distCENTER[2] += deltaY/100.0;
+		if(!gui.lockLight.value){
+			lightSource[2] += deltaY/10.0;
+		}
+		else{
+			distCENTER[2] += deltaY/100.0;
+		}
 	} else {
 
-		rotY += degToRad(deltaX / 5);
-		rotX += degToRad(deltaY / 5);
+		if(!gui.lockLight.value){
+			lightSource[0] -= deltaX/10.0;
+			lightSource[1] += deltaY/10.0;
+		}
+		else{
+			rotY += degToRad(deltaX / 5);
+			rotX += degToRad(deltaY / 5);
 
-		mat4.identity(rotMatrix);
-		mat4.rotate(rotMatrix, rotX, [1, 0, 0]);
-		mat4.rotate(rotMatrix, rotY, [0, 0, 1]);
+			mat4.identity(rotMatrix);
+			mat4.rotate(rotMatrix, rotX, [1, 0, 0]);
+			mat4.rotate(rotMatrix, rotY, [0, 0, 1]);
+		}
 	}
 	
 	lastMouseX = newX

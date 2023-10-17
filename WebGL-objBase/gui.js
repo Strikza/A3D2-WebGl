@@ -2,7 +2,7 @@
 var gui = {
    
    // Slider
-   sigma  : {value: 0.1, min: 0.01, max: 0.5, step: 0.01, text: "Rugosité (sigma)"   },
+   sigma  : {value: 0.1, min: 0.01, max: 0.5, step: 0.01, text: "Rugosité (sigma)"    },
    refract: {value: 1.5, min: 1.01, max: 3,   step: 0.01, text: "Indice de réfraction"},
 
    // Checkbox
@@ -11,6 +11,10 @@ var gui = {
    // Color Selector
    color: {value: "#aaaaaa", mesh: null, text: "Couleur du matériau"},
 
+   // RadioGroup
+   beckmann: {id: 0, value: 0,  text: "Beckmann"},
+   ggx:      {id: 1, value: 1, text: "GGX"     },
+
    // Select
    obj_select: {
       value: "bunny", 
@@ -18,7 +22,9 @@ var gui = {
          "bunny", 
          "mustang", 
          "porsche", 
-         "sphere"
+         "sphere",
+         "evoli",
+         "hericendre"
       ], 
       mesh: null, 
       text: "Choisissez un objet"
@@ -38,13 +44,24 @@ function initGui() {
    gui.guiBody = document.createElement('tbody');
    table.appendChild(gui.guiBody);
 
-
-   // Section
-   sec = gui_section("Options");
+   // Shader section
+   sec = gui_section("Options du shader");
    gui_slider(sec, gui.sigma);
    gui_slider(sec, gui.refract);
+   gui_vspace(sec);
+   gui_text(sec, "Facteur D (shader)");
+   gui_radiobutton(sec, gui.beckmann, "dShader", true);
+   gui_radiobutton(sec, gui.ggx,      "dShader"      );
+   gui_vspace(sec);
+
+   // Object section
+   sec = gui_section("Options de l'objet");
    gui_colorSelector(sec, gui.color);
+   gui_vspace(sec);
    gui_select(sec, gui.obj_select);
+
+   // Ohter options
+   sec = gui_section("Autres options");
    gui_checkbox(sec, gui.lockLight);
    gui_vspace(sec);
 }

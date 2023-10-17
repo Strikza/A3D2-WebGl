@@ -4,6 +4,7 @@ precision mediump float;
 uniform vec3  uMaterial;
 uniform float uSigma;
 uniform float uRefract;
+uniform int   uDistrib;
 
 varying vec4 pos3D;
 varying vec3 lightSource;
@@ -90,7 +91,13 @@ void main(void)
 
 	if(iN != 0.0 || oN != 0.0){
 		float F = fresnel(i,m);
-		float D = beckmann(m, N);
+		float D;
+		if(uDistrib == 0){
+			D = beckmann(m, N);
+		}
+		else{
+			D = walter_ggx(m, N);
+		}
 		float G = masquage(m, N, i, o);
 
 		float cookTorance = F*D*G / 4.0*iN*oN;
@@ -101,6 +108,7 @@ void main(void)
 		colorCT = vec3(0.0, 0.0, 0.0);
 	}
 
-	vec3 col = uMaterial * dot(N, i) + colorCT; // Lambert rendering, eye light source
-	gl_FragColor = vec4(col,1.0);
+	vec3 col = uMaterial * dot(N, i) + colorCT; // Lambert rendering with Cook & Torrance
+	
+	gl_FragColor = vec4(col, 1.0);
 }

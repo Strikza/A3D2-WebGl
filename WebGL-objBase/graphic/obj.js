@@ -6,17 +6,18 @@ class objmesh {
 
 	// --------------------------------------------
 	constructor(objFname) {
-		this.objName = objFname;
+		this.objName    = objFname;
 		this.shaderName = 'obj';
-		this.loaded = -1;
-		this.shader = null;
-		this.mesh = null;
-		this.col = null;
+		this.loaded     = -1;
+		this.shader     = null;
+		this.mesh       = null;
+		this.col        = null;
 		
 		loadObjFile(this);
 		loadShaders(this);
 	}
 
+	// --------------------------------------------
 	hexaToRGB(col) {
 		return [
 			parseInt(col.substring(1,3), 16)/255, 
@@ -25,6 +26,7 @@ class objmesh {
 		];
 	}
 
+	// --------------------------------------------
 	setColor(value) {
 		this.col = this.hexaToRGB(value);
 	}
@@ -45,12 +47,12 @@ class objmesh {
 
 		this.shader.rMatrixUniform  = gl.getUniformLocation(this.shader, "uRMatrix");
 		this.shader.mvMatrixUniform = gl.getUniformLocation(this.shader, "uMVMatrix");
-		this.shader.lMatrixUniform  = gl.getUniformLocation(this.shader, "uLMatrix");
 		this.shader.pMatrixUniform  = gl.getUniformLocation(this.shader, "uPMatrix");
 		this.shader.lightSource     = gl.getUniformLocation(this.shader, "uLightSource");
 		this.shader.material        = gl.getUniformLocation(this.shader, "uMaterial");
 		this.shader.sigmaUniform    = gl.getUniformLocation(this.shader, "uSigma");
 		this.shader.refractUniform  = gl.getUniformLocation(this.shader, "uRefract");
+		this.shader.uDistrib        = gl.getUniformLocation(this.shader, "uDistrib");
 	}
 	
 	// --------------------------------------------
@@ -59,20 +61,16 @@ class objmesh {
 		mat4.translate(mvMatrix, distCENTER);
 		//mat4.rotate(rotMatrix, 90.0, [1, 0, 0]);
 		mat4.multiply(mvMatrix, rotMatrix);
-
-		mat4.identity(lMatrix);
-		if(gui.lockLight.value){
-			mat4.multiply(lMatrix, rotMatrix);
-		}
+		let distrib = window.localStorage.getItem("dShader");
 
 		gl.uniformMatrix4fv(this.shader.rMatrixUniform,  false, rotMatrix);
 		gl.uniformMatrix4fv(this.shader.mvMatrixUniform, false, mvMatrix);
-		gl.uniformMatrix4fv(this.shader.lMatrixUniform, false, lMatrix);
 		gl.uniformMatrix4fv(this.shader.pMatrixUniform,  false, pMatrix);
 		gl.uniform3fv(this.shader.lightSource, lightSource);
 		gl.uniform3f(this.shader.material, this.col[0], this.col[1], this.col[2]);
 		gl.uniform1f(this.shader.sigmaUniform, gui.sigma.value);
 		gl.uniform1f(this.shader.refractUniform, gui.refract.value);
+		gl.uniform1i(this.shader.uDistrib, distrib);
 	}
 	
 	// --------------------------------------------
