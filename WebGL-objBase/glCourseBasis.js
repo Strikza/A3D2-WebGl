@@ -9,10 +9,12 @@ var pMatrix     = mat4.create();
 var rotMatrix   = mat4.create();
 var lightSource = vec3.create([0, 0, -3]);
 var distCENTER;
+var url_skybox;
 
 // =====================================================
-var OBJ1  = null;
-var PLANE = null;
+var OBJ1   = null;
+var PLANE  = null;
+var SKYBOX = null;
 
 
 
@@ -33,9 +35,31 @@ function initGL(canvas)
 		gl.enable(gl.DEPTH_TEST);
 		gl.enable(gl.CULL_FACE);
 		gl.cullFace(gl.BACK); 
+
 	} catch (e) {}
 	if (!gl) {
 		console.log("Could not initialise WebGL");
+	}
+}
+
+
+// =====================================================
+function initTexture(src)
+{
+	var texImage = new Image();
+	texImage.src = src;
+
+	texture = gl.createTexture();
+	texture.image = texImage;
+
+	texImage.onload = function () {
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.uniform1i(shaderProgram.samplerUniform, 0);
+		gl.activeTexture(gl.TEXTURE0);
 	}
 }
 
@@ -146,7 +170,7 @@ function webGLStart() {
 	distCENTER = vec3.create([0,-0.2,-3]);
 	
 	PLANE = new plane();
-
+	SKYBOX = new skybox();
 	setOBJ(gui.obj_select.value);
 
 	tick();
@@ -156,7 +180,8 @@ function webGLStart() {
 // =====================================================
 function drawScene() {
 	gl.clear(gl.COLOR_BUFFER_BIT);
-
+	
+	SKYBOX.draw();
 	PLANE.draw();
 	OBJ1.draw();
 }
