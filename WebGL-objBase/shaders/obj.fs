@@ -5,6 +5,7 @@ uniform vec3  uMaterial;
 uniform float uSigma;
 uniform float uRefract;
 uniform int   uDistrib;
+uniform int uReflectRefract;
 
 uniform samplerCube uSampler;
 
@@ -132,5 +133,9 @@ void main(void)
 	
 	//gl_FragColor = vec4(col, 1.0);
 
-	gl_FragColor = refraction(o, N);
+	if(uReflectRefract == 0){
+		gl_FragColor = reflection(o, N);
+	} else {
+		gl_FragColor = refraction(o, N);
+	}
 }

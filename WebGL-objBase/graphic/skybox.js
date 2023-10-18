@@ -107,11 +107,9 @@ class skybox {
 			image.addEventListener('load', ()=> {
 				gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
 				gl.texImage2D(target, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-				gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
 			});
 		});
 
-		gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);

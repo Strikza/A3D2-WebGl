@@ -23,3 +23,18 @@
     - Modification de la rugosité avec un slider (sigma)
     - Modification de l'indice de réfraction avec un slider
     - Choix de la fonction de la distribution D avec un radioGroup (Beckmann ou GGX)
+
+
+---
+# <u>Jalon 2</u>
+### Consignes :
+- Définissez le cube associé à ses textures pour représenter l'environnement autour de l'objet
+- Dans le fragment shader, réalisez les calculs pour une surface miroir / transparente (à partir des équations de Fresnel)
+- avec une case à cocher pour choisir entre miroir et transparence
+- et un slider pour choisir interactivement la valeur de ni
+
+### Travail réalisé :
+
+- Ajout d'une skybox environnementale
+- Visualisation des effets de réflection et de réfraction entre l'objet et la skybox
+- Utilisation d'un toggle-switch pour changer entre la réflection et la réfraction dynamiquement

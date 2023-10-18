@@ -6,8 +6,10 @@ var gui = {
    refract: {value: 1.5, min: 1.01, max: 3,   step: 0.01, text: "Indice de réfraction"},
 
    // Checkbox
-   lockLight: {value: true, text: "Lock light"},
-   RefractOrReflect: {value: true, text: "Réflection"},
+   lockLight: {value: true, text: "Verrouiller la lumière"},
+
+   //Toggle
+   RefractOrReflect: {value: true, text: "Réflection  ", text2: "  Réfraction"},
 
    // Color Selector
    color: {value: "#aaaaaa", mesh: null, text: "Couleur du matériau"},
@@ -64,6 +66,7 @@ function initGui() {
    // Ohter options
    sec = gui_section("Autres options");
    gui_checkbox(sec, gui.lockLight);
+   gui_toggle(sec, "reflectRefract", gui.RefractOrReflect);
    gui_vspace(sec);
 }
 
@@ -143,6 +146,45 @@ function gui_checkbox(sec, obj) {
 
    sec.appendChild(box);
    sec.appendChild(label);
+   sec.appendChild(document.createElement('br'));
+}
+
+// ==============================================================================
+function gui_toggle(sec, id, obj) {
+
+   let encapsulatingLabel = document.createElement('label');
+   encapsulatingLabel.className = 'switch';
+
+   let toggle = document.createElement('input');
+   toggle.type      = 'checkbox';
+   toggle.id = id;
+   toggle.className = 'switch';
+   toggle.checked   = obj.value;
+   toggle.checkbox  = toggle;
+
+   let span = document.createElement('span');
+   span.id = "round-slider"
+
+   toggle.addEventListener(
+      'change',
+      function() {
+         obj.value = toggle.checked;
+      }
+   );
+
+   let label = document.createElement('label');
+   label.innerHTML = obj.text;
+   label.className = 'label';
+
+   let label2 = document.createElement('label');
+   label2.innerHTML = obj.text2;
+   label2.className = 'label';
+
+   sec.appendChild(label);
+   sec.appendChild(encapsulatingLabel);
+   encapsulatingLabel.appendChild(toggle);
+   encapsulatingLabel.appendChild(span);
+   sec.appendChild(label2);
    sec.appendChild(document.createElement('br'));
 }
 
