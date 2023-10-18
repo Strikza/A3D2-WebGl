@@ -6,5 +6,5 @@ uniform samplerCube uSampler;
 
 void main()
 {  
-	gl_FragColor = textureCube(uSampler, TexCoords);
+	gl_FragColor = textureCube(uSampler, TexCoords.xzy);
 }

@@ -7,13 +7,14 @@ var gui = {
 
    // Checkbox
    lockLight: {value: true, text: "Lock light"},
+   RefractOrReflect: {value: true, text: "Réflection"},
 
    // Color Selector
    color: {value: "#aaaaaa", mesh: null, text: "Couleur du matériau"},
 
    // RadioGroup
    beckmann: {id: 0, value: 0,  text: "Beckmann"},
-   ggx:      {id: 1, value: 1, text: "GGX"     },
+   ggx:      {id: 1, value: 1, text: "GGX"      },
 
    // Select
    obj_select: {

@@ -53,6 +53,8 @@ class objmesh {
 		this.shader.sigmaUniform    = gl.getUniformLocation(this.shader, "uSigma");
 		this.shader.refractUniform  = gl.getUniformLocation(this.shader, "uRefract");
 		this.shader.uDistrib        = gl.getUniformLocation(this.shader, "uDistrib");
+		
+        this.shader.samplerUniform  = gl.getUniformLocation(this.shader, "uSampler");
 	}
 	
 	// --------------------------------------------
@@ -71,6 +73,8 @@ class objmesh {
 		gl.uniform1f(this.shader.sigmaUniform, gui.sigma.value);
 		gl.uniform1f(this.shader.refractUniform, gui.refract.value);
 		gl.uniform1i(this.shader.uDistrib, distrib);
+		
+        gl.uniform1i(this.shader.samplerUniform, 0);
 	}
 	
 	// --------------------------------------------

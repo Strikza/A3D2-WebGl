@@ -6,9 +6,14 @@ uniform float uSigma;
 uniform float uRefract;
 uniform int   uDistrib;
 
+uniform samplerCube uSampler;
+
 varying vec4 pos3D;
 varying vec3 lightSource;
 varying vec3 normal;
+
+
+varying mat4 vRMatrix;
 
 
 // ==============================================
@@ -76,6 +81,21 @@ float masquage(vec3 m, vec3 N, vec3 i, vec3 o){
 	return min(1.0, min(Go, Gi));
 }
 
+// ==============================================
+vec4 reflection(vec3 o, vec3 N){
+    vec3 r = reflect(-o, N);
+    r = vec3(vRMatrix * vec4(r, 1.0));
+    return textureCube(uSampler, r.xzy);
+}
+
+// =================================================================================
+
+vec4 refraction(vec3 o, vec3 N){
+    vec3 r = refract(-o, N, uRefract/3.0);
+    r = vec3(vRMatrix * vec4(r, 1.0));
+    return textureCube(uSampler, r.xzy);
+}
+
 
 // ==============================================
 void main(void)
@@ -110,5 +130,7 @@ void main(void)
 
 	vec3 col = uMaterial * dot(N, i) + colorCT; // Lambert rendering with Cook & Torrance
 	
-	gl_FragColor = vec4(col, 1.0);
+	//gl_FragColor = vec4(col, 1.0);
+
+	gl_FragColor = refraction(o, N);
 }
