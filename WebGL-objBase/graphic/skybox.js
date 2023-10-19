@@ -10,7 +10,7 @@ class skybox {
 		this.loaded     = -1;
         this.texLoaded  =  0;
 		this.shader     = null;
-        this.url_box    = './textures/skybox_1/';
+        this.url_box    = './textures/skybox_3/';
         this.texture    = null;
         
 		this.initAll();

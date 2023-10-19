@@ -5,7 +5,7 @@ uniform vec3  uMaterial;
 uniform float uSigma;
 uniform float uRefract;
 uniform int   uDistrib;
-uniform int uReflectRefract;
+uniform int   uMode;
 
 uniform samplerCube uSampler;
 
@@ -82,6 +82,7 @@ float masquage(vec3 m, vec3 N, vec3 i, vec3 o){
 	return min(1.0, min(Go, Gi));
 }
 
+
 // ==============================================
 vec4 reflection(vec3 o, vec3 N){
     vec3 r = reflect(-o, N);
@@ -89,22 +90,16 @@ vec4 reflection(vec3 o, vec3 N){
     return textureCube(uSampler, r.xzy);
 }
 
-// =================================================================================
 
+// ==============================================
 vec4 refraction(vec3 o, vec3 N){
-    vec3 r = refract(-o, N, uRefract/3.0);
+    vec3 r = refract(-o, N, 1.0/uRefract);
     r = vec3(vRMatrix * vec4(r, 1.0));
     return textureCube(uSampler, r.xzy);
 }
 
-
-// ==============================================
-void main(void)
-{
+vec4 CookTorrance(vec3 o, vec3 i, vec3 N){
 	vec3 colorCT;
-	vec3 o = normalize(vec3(-pos3D));
-	vec3 i = -lightSource;
-	vec3 N = normalize(normal);
 	vec3 m = normalize(o + i);
 
 	float iN = clampedDot(i, N);
@@ -131,11 +126,22 @@ void main(void)
 
 	vec3 col = uMaterial * dot(N, i) + colorCT; // Lambert rendering with Cook & Torrance
 	
-	//gl_FragColor = vec4(col, 1.0);
+	return vec4(col, 1.0);
+}
 
-	if(uReflectRefract == 0){
+
+// ==============================================
+void main(void)
+{
+	vec3 o = normalize(vec3(-pos3D));
+	vec3 i = -lightSource;
+	vec3 N = normalize(normal);
+
+	if(uMode == 0){
+		gl_FragColor = CookTorrance(o, i, N);
+	} else if(uMode == 1){
 		gl_FragColor = reflection(o, N);
-	} else {
+	} else if(uMode == 2){
 		gl_FragColor = refraction(o, N);
 	}
 }
