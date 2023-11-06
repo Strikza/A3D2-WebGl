@@ -4,6 +4,7 @@ precision mediump float;
 uniform vec3  uMaterial;
 uniform float uSigma;
 uniform float uRefract;
+uniform float uRatioMT;
 uniform int   uDistrib;
 uniform int   uMode;
 
@@ -98,6 +99,18 @@ vec4 refraction(vec3 o, vec3 N){
     return textureCube(uSampler, r.xzy);
 }
 
+
+// ==============================================
+vec4 reflect_refract(vec3 o, vec3 N){
+
+	vec4 T = refraction(o, N) * uRatioMT;
+	vec4 M = reflection(o, N) * (1.0-uRatioMT);
+
+	return M+T;
+}
+
+
+// ==============================================
 vec4 CookTorrance(vec3 o, vec3 i, vec3 N){
 	vec3 colorCT;
 	vec3 m = normalize(o + i);
@@ -143,5 +156,7 @@ void main(void)
 		gl_FragColor = reflection(o, N);
 	} else if(uMode == 2){
 		gl_FragColor = refraction(o, N);
+	} else if(uMode == 3){
+		gl_FragColor = reflect_refract(o, N);
 	}
 }

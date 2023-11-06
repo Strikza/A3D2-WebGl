@@ -2,8 +2,9 @@
 var gui = {
    
    // Slider
-   sigma  : {value: 0.1, min: 0.01, max: 0.5, step: 0.01, text: "Rugosité (sigma)"    },
-   refract: {value: 1.5, min: 1.0,  max: 3,   step: 0.01, text: "Indice de réfraction"},
+   sigma  : {value: 0.1, min: 0.01, max: 0.5, step: 0.01, text: "Rugosité (sigma)"          },
+   refract: {value: 1.5, min: 1.0,  max: 3,   step: 0.01, text: "Indice de réfraction"      },
+   ratioMT: {value: 0.3, min: 0.0,  max: 1.0, step: 0.01, text: "Ratio Transparence/Mirroir"},
 
    // Checkbox
    lockLight: {value: true, text: "Verrouiller la lumière"},
@@ -16,7 +17,7 @@ var gui = {
 
    // RadioGroup
    beckmann: {id: 0, value: 0, text: "Beckmann"},
-   ggx:      {id: 1, value: 1, text: "GGX"      },
+   ggx:      {id: 1, value: 1, text: "GGX"     },
 
    // Select
    obj_select: {
@@ -38,7 +39,8 @@ var gui = {
       values: [
          "Cook & Torrance",
          "Reflexion",
-         "Refraction"
+         "Refraction",
+         "OH YES SIR, 2"
       ], 
       type: "display", 
       text: "Choisissez un mode"
@@ -62,6 +64,7 @@ function initGui() {
    sec = gui_section("Options du shader");
    gui_slider(sec, gui.sigma);
    gui_slider(sec, gui.refract);
+   gui_slider(sec, gui.ratioMT);
    gui_vspace(sec);
    gui_text(sec, "Facteur D (shader)");
    gui_radiobutton(sec, gui.beckmann, "dShader", true);
