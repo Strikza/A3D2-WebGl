@@ -92,7 +92,7 @@ vec4 reflection(vec3 o, vec3 N){
 // =================================================================================
 
 vec4 refraction(vec3 o, vec3 N){
-    vec3 r = refract(-o, N, uRefract/3.0);
+    vec3 r = refract(-o, N, 1.0/uRefract);
     r = vec3(vRMatrix * vec4(r, 1.0));
     return textureCube(uSampler, r.xzy);
 }
