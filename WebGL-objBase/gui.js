@@ -45,8 +45,17 @@ var gui = {
       type: "display",
       text: "Choisissez un mode"
    },
+   skybox_choice: {
+      value: 'lac',
+      values: [
+         'lac',
+         'espace',
+         'mars_pixel',
+      ],
+      type: "skybox",
+      text: "Choisissez une skybox"
+   }
 }
-
 
 
 // ==============================================================================
@@ -81,6 +90,7 @@ function initGui() {
    sec = gui_section("Autres options");
    gui_checkbox(sec, gui.lockLight);
    gui_select(sec, gui.display_mode);
+   gui_select(sec, gui.skybox_choice);
    gui_vspace(sec);
 }
 
@@ -338,6 +348,14 @@ function gui_select(sec, obj) {
          function() {
             obj.value = select.value;
             setOBJ(obj.values[obj.value]);
+         }
+      );
+   }
+   else if(obj.type === "skybox") {
+      select.addEventListener(
+         'change',
+         function() {
+            obj.value = select.value;
          }
       );
    }

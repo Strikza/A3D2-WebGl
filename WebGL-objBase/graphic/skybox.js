@@ -10,7 +10,7 @@ class skybox {
 		this.loaded     = -1;
         this.texLoaded  =  0;
 		this.shader     = null;
-        this.url_box    = './textures/skybox_3/';
+        this.url_box    = './textures/';
         this.texture    = null;
         
 		this.initAll();
@@ -91,12 +91,12 @@ class skybox {
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
 
         const faceInfos = [
-			{target: gl.TEXTURE_CUBE_MAP_POSITIVE_X, url:this.url_box+"/0.png"},
-			{target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X, url:this.url_box+"/1.png"},
-			{target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y, url:this.url_box+"/2.png"},
-			{target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, url:this.url_box+"/3.png"},
-			{target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z, url:this.url_box+"/5.png"},
-			{target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, url:this.url_box+"/4.png"},
+			{target: gl.TEXTURE_CUBE_MAP_POSITIVE_X, url:this.url_box + gui.skybox_choice.value + "/0.png"},
+			{target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X, url:this.url_box + gui.skybox_choice.value + "/1.png"},
+			{target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y, url:this.url_box + gui.skybox_choice.value + "/2.png"},
+			{target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, url:this.url_box + gui.skybox_choice.value + "/3.png"},
+			{target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z, url:this.url_box + gui.skybox_choice.value + "/5.png"},
+			{target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, url:this.url_box + gui.skybox_choice.value + "/4.png"},
 		];
 
 		faceInfos.forEach((faceInfo) => {
@@ -147,6 +147,7 @@ class skybox {
     // --------------------------------------------
 	draw() {
 		if(this.shader && this.loaded==4 ) {
+            
 			this.setShadersParams();
 			this.setUniforms();
 
