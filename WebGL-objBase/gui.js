@@ -38,11 +38,11 @@ var gui = {
       value: "Cook & Torrance", 
       values: [
          "Cook & Torrance",
-         "Reflexion",
-         "Refraction",
-         "OH YES SIR, 2"
+         "Mirroir",
+         "Transparence",
+         "Mirroir et Transparence"
       ], 
-      type: "display", 
+      type: "display",
       text: "Choisissez un mode"
    },
 }

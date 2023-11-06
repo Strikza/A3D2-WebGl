@@ -146,9 +146,9 @@ vec4 CookTorrance(vec3 o, vec3 i, vec3 N){
 // ==============================================
 void main(void)
 {
-	vec3 o = normalize(vec3(-pos3D));
+	vec3 o =  normalize(vec3(-pos3D));
 	vec3 i = -lightSource;
-	vec3 N = normalize(normal);
+	vec3 N =  normalize(normal);
 
 	if(uMode == 0){
 		gl_FragColor = CookTorrance(o, i, N);
