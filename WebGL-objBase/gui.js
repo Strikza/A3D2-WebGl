@@ -3,7 +3,7 @@ var gui = {
    
    // Slider
    sigma  : {value: 0.1, min: 0.01, max: 0.5, step: 0.01, text: "Rugosité (sigma)"    },
-   refract: {value: 1.5, min: 1.01, max: 3,   step: 0.01, text: "Indice de réfraction"},
+   refract: {value: 1.5, min: 1.0,  max: 3,   step: 0.01, text: "Indice de réfraction"},
 
    // Checkbox
    lockLight: {value: true, text: "Verrouiller la lumière"},
@@ -15,22 +15,33 @@ var gui = {
    color: {value: "#aaaaaa", mesh: null, text: "Couleur du matériau"},
 
    // RadioGroup
-   beckmann: {id: 0, value: 0,  text: "Beckmann"},
+   beckmann: {id: 0, value: 0, text: "Beckmann"},
    ggx:      {id: 1, value: 1, text: "GGX"      },
 
    // Select
    obj_select: {
-      value: "bunny", 
+      value: 0, 
       values: [
          "bunny", 
          "mustang", 
          "porsche", 
          "sphere",
+         "cube",
          "evoli",
          "hericendre"
       ], 
-      mesh: null, 
+      type: "obj", 
       text: "Choisissez un objet"
+   },
+   display_mode: {
+      value: "Cook & Torrance", 
+      values: [
+         "Cook & Torrance",
+         "Reflexion",
+         "Refraction"
+      ], 
+      type: "display", 
+      text: "Choisissez un mode"
    },
 }
 
@@ -66,7 +77,7 @@ function initGui() {
    // Ohter options
    sec = gui_section("Autres options");
    gui_checkbox(sec, gui.lockLight);
-   gui_toggle(sec, "reflectRefract", gui.RefractOrReflect);
+   gui_select(sec, gui.display_mode);
    gui_vspace(sec);
 }
 
@@ -305,11 +316,12 @@ function gui_select(sec, obj) {
 
    let select = document.createElement("select");
    select.multiple = true;
+   select.size = obj.values.length;
 
    for(let i=0; i < obj.values.length; i++){
       let val = obj.values[i];
       let opt = document.createElement("option");
-      opt.value = val;
+      opt.value = i;
       opt.text = val;
       if(i == 0)
          opt.selected = true;
@@ -317,13 +329,23 @@ function gui_select(sec, obj) {
       select.appendChild(opt);
    }
 
-   select.addEventListener(
-      'change',
-      function() {
-         obj.value = select.value;
-         setOBJ(obj.value);
-      }
-   );
+   if(obj.type === "obj"){
+      select.addEventListener(
+         'change',
+         function() {
+            obj.value = select.value;
+            setOBJ(obj.values[obj.value]);
+         }
+      );
+   }
+   else{
+      select.addEventListener(
+         'change',
+         function() {
+            obj.value = select.value;
+         }
+      );
+   }
 
    txt = document.createTextNode(obj.text);
 

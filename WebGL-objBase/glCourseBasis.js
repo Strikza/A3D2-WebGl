@@ -171,7 +171,7 @@ function webGLStart() {
 	
 	PLANE = new plane();
 	SKYBOX = new skybox();
-	setOBJ(gui.obj_select.value);
+	setOBJ(gui.obj_select.values[gui.obj_select.value]);
 
 	tick();
 }

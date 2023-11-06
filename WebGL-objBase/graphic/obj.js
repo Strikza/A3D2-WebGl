@@ -53,7 +53,7 @@ class objmesh {
 		this.shader.sigmaUniform    = gl.getUniformLocation(this.shader, "uSigma");
 		this.shader.refractUniform  = gl.getUniformLocation(this.shader, "uRefract");
 		this.shader.uDistrib        = gl.getUniformLocation(this.shader, "uDistrib");
-		this.shader.uReflectRefract        = gl.getUniformLocation(this.shader, "uReflectRefract");
+        this.shader.uMode           = gl.getUniformLocation(this.shader, "uMode");
         this.shader.samplerUniform  = gl.getUniformLocation(this.shader, "uSampler");
 	}
 	
@@ -64,7 +64,6 @@ class objmesh {
 		//mat4.rotate(rotMatrix, 90.0, [1, 0, 0]);
 		mat4.multiply(mvMatrix, rotMatrix);
 		let distrib = window.localStorage.getItem("dShader");
-		let reflectOrRefract = document.getElementById('reflectRefract');
 
 		gl.uniformMatrix4fv(this.shader.rMatrixUniform,  false, rotMatrix);
 		gl.uniformMatrix4fv(this.shader.mvMatrixUniform, false, mvMatrix);
@@ -74,7 +73,7 @@ class objmesh {
 		gl.uniform1f(this.shader.sigmaUniform, gui.sigma.value);
 		gl.uniform1f(this.shader.refractUniform, gui.refract.value);
 		gl.uniform1i(this.shader.uDistrib, distrib);
-		gl.uniform1i(this.shader.uReflectRefract, Number(reflectOrRefract.checked));
+		gl.uniform1i(this.shader.uMode, gui.display_mode.value);
 		
         gl.uniform1i(this.shader.samplerUniform, 0);
 	}
