@@ -356,6 +356,7 @@ function gui_select(sec, obj) {
          'change',
          function() {
             obj.value = select.value;
+            setSkybox(obj.values[obj.value]);
          }
       );
    }

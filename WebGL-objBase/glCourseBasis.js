@@ -72,6 +72,10 @@ function setOBJ(name) {
 	OBJ1.setColor(gui.color.value);
 }
 
+// =====================================================
+function setSkybox(name) {
+	SKYBOX = new skybox(name);
+}
 
 // =====================================================
 loadObjFile = function(OBJ3D)
@@ -170,7 +174,7 @@ function webGLStart() {
 	distCENTER = vec3.create([0,-0.2,-3]);
 	
 	PLANE = new plane();
-	SKYBOX = new skybox();
+	SKYBOX = new skybox(gui.skybox_choice.value);
 	setOBJ(gui.obj_select.values[gui.obj_select.value]);
 
 	tick();
