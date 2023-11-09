@@ -2,9 +2,10 @@
 var gui = {
    
    // Slider
-   sigma  : {value: 0.1, min: 0.01, max: 0.5, step: 0.01, text: "Rugosité (sigma)"          },
-   refract: {value: 1.5, min: 1.0,  max: 3,   step: 0.01, text: "Indice de réfraction"      },
-   ratioMT: {value: 0.3, min: 0.0,  max: 1.0, step: 0.01, text: "Ratio Transparence/Mirroir"},
+   sigma  :  {value: 0.1, min: 0.01, max: 0.5, step: 0.01, text: "Rugosité (sigma)"          },
+   refract:  {value: 1.5, min: 1.0,  max: 3,   step: 0.01, text: "Indice de réfraction"      },
+   ratioMT:  {value: 0.3, min: 0.0,  max: 1.0, step: 0.01, text: "Ratio Transparence/Mirroir"},
+   rayAmount: {value: 10,  min: 1,    max: 100, step: 1,    text: "Nombre de rayons"},
 
    // Checkbox
    lockLight: {value: true, text: "Verrouiller la lumière"},
@@ -38,9 +39,11 @@ var gui = {
       value: "Cook & Torrance", 
       values: [
          "Cook & Torrance",
-         "Mirroir",
+         "Miroir",
          "Transparence",
-         "Mirroir et Transparence"
+         "Miroir et Transparence",
+         "Miroir dépoli sans Fresnel",
+         "Miroir dépoli avec Fresnel",
       ], 
       type: "display",
       text: "Choisissez un mode"
@@ -74,6 +77,7 @@ function initGui() {
    gui_slider(sec, gui.sigma);
    gui_slider(sec, gui.refract);
    gui_slider(sec, gui.ratioMT);
+   gui_slider(sec, gui.rayAmount);
    gui_vspace(sec);
    gui_text(sec, "Facteur D (shader)");
    gui_radiobutton(sec, gui.beckmann, "dShader", true);
