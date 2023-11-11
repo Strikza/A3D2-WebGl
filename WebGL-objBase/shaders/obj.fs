@@ -206,9 +206,9 @@ vec4 frosted_mirror_withFresnel(vec3 o, vec3 N, int rayAmount){
 		if (i >= rayAmount) break;
 
         vec3 m  = getMicroNormal(N, o);  
-        vec3 li = reflection(o, m).xyz;
+        vec3 li = normalize(reflection(o, m).xyz);
 
-        vec3 iVec = reflect(-o, m);
+        vec3 iVec = normalize(reflect(-o, m));
 		
         float iN = clampedDot(iVec, N);
         float oN = clampedDot(o, N);
@@ -216,7 +216,9 @@ vec4 frosted_mirror_withFresnel(vec3 o, vec3 N, int rayAmount){
         float im = clampedDot(iVec, m);
         float om = clampedDot(o, m);
 
-        if(iN == 0.0 || oN == 0.0 || mN == 0.0 || im == 0.0 || om == 0.0) continue;
+		const float margin = 0.001;
+
+        if(iN < margin || oN < margin || mN < margin || im < margin || om < margin) continue;
 
         float F = fresnel(iVec, m);
         float D = beckmann(m, N);
