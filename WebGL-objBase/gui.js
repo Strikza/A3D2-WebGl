@@ -42,8 +42,6 @@ var gui = {
          "Miroir",
          "Transparence",
          "Miroir et Transparence",
-         "Miroir dépoli sans Fresnel",
-         "Miroir dépoli avec Fresnel",
       ], 
       type: "display",
       text: "Choisissez un mode"
@@ -77,7 +75,6 @@ function initGui() {
    gui_slider(sec, gui.sigma);
    gui_slider(sec, gui.refract);
    gui_slider(sec, gui.ratioMT);
-   gui_slider(sec, gui.rayAmount);
    gui_vspace(sec);
    gui_text(sec, "Facteur D (shader)");
    gui_radiobutton(sec, gui.beckmann, "dShader", true);

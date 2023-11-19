@@ -39,44 +39,6 @@ float clampedDot(vec3 a, vec3 b){
 	return max(0.0, dot(a, b));
 }
 
-// ==============================================
-float seed = 0.0;
-
-float getRandom(){
-	seed++;
-	return fract(sin(dot(pos3D.xy + seed, vec2(12.9898,78.233))) * 43758.5453123);
-}
-
-// ==============================================
-mat3 getNewRotationMatrix(vec3 N, vec3 o){
-	vec3 newRMatrix = vec3(1.0, 0.0, 0.0);
-
-	if (clampedDot(N,newRMatrix) > 0.9){
-		newRMatrix = vec3(0.0, 1.0, 0.0);
-	}
-
-    vec3 j = normalize(cross(N,newRMatrix));
-    vec3 i = normalize(cross(j,N));
-
-    return mat3(i,j,N);
-}
-
-// ==============================================
-vec3 getMicroNormal(vec3 N, vec3 o){
-    mat3 localRMatrix = getNewRotationMatrix(N, o);
-
-    float phi = getRandom() * 2.0 * 3.1415;
-	float theta = atan( sqrt((-square(uSigma)) * log(1.0 - getRandom())) );
-
-    float x = sin(theta)*cos(phi);
-    float y = sin(theta)*sin(phi);
-    float z = cos(theta);
-
-    vec3 m = localRMatrix * normalize(vec3(x, y, z));
-
-    return m;
-}
-
 // BRDF
 // ==============================================
 float fresnel(vec3 i, vec3 m){
@@ -183,57 +145,6 @@ vec4 CookTorrance(vec3 o, vec3 i, vec3 N){
 	return vec4(col, 1.0);
 }
 
-// FROSTED MIRRORS
-// ==============================================
-vec4 frosted_mirror_noFresnel(vec3 o, vec3 N, int rayAmount){
-	vec4 Lo = vec4(0.0);
-
-	for (int i = 0; i < 100; ++i) {
-		if (i >= rayAmount) break;
-		
-        vec3 m = getMicroNormal(N, o);
-        Lo += reflection(o, m);
-	}
-	return Lo / float(rayAmount);
-}
-
-vec4 frosted_mirror_withFresnel(vec3 o, vec3 N, int rayAmount){
-	vec3 Lo = vec3(0.0);
-	
-    int rayCpt = 0;
-
-	for (int i = 0; i < 100; ++i) {
-		if (i >= rayAmount) break;
-
-        vec3 m  = getMicroNormal(N, o);  
-        vec3 li = normalize(reflection(o, m).xyz);
-
-        vec3 iVec = normalize(reflect(-o, m));
-		
-        float iN = clampedDot(iVec, N);
-        float oN = clampedDot(o, N);
-        float mN = clampedDot(m, N);
-        float im = clampedDot(iVec, m);
-        float om = clampedDot(o, m);
-
-		const float margin = 0.001;
-
-        if(iN < margin || oN < margin || mN < margin || im < margin || om < margin) continue;
-
-        float F = fresnel(iVec, m);
-        float D = beckmann(m, N);
-        float G = masquage(m, N, iVec, o);
-        float Fr = (F * D * G) / (4.0 * iN * oN);
-        float pdf = D * mN;
-
-        Lo += li * Fr * iN / pdf;
-
-        rayCpt++;
-    }
-	
-	return vec4(Lo / float(rayCpt), 1.0);
-}
-
 // ==============================================
 void main(void)
 {
@@ -249,9 +160,5 @@ void main(void)
 		gl_FragColor = refraction(o, N);
 	} else if(uMode == 3){
 		gl_FragColor = reflect_refract(o, N);
-	} else if(uMode == 4){
-		gl_FragColor = frosted_mirror_noFresnel(o, N, uRayAmount);
-	} else if(uMode == 5){
-		gl_FragColor = frosted_mirror_withFresnel(o, N, uRayAmount);
 	}
 }

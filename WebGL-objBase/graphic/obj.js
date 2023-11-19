@@ -55,7 +55,6 @@ class objmesh {
 		this.shader.ratioMTUniform  = gl.getUniformLocation(this.shader, "uRatioMT");
 		this.shader.uDistrib        = gl.getUniformLocation(this.shader, "uDistrib");
         this.shader.uMode           = gl.getUniformLocation(this.shader, "uMode");
-        this.shader.uRayAmount      = gl.getUniformLocation(this.shader, "uRayAmount");
         this.shader.samplerUniform  = gl.getUniformLocation(this.shader, "uSampler");
 	}
 	
@@ -77,7 +76,6 @@ class objmesh {
 		gl.uniform1f(this.shader.ratioMTUniform, gui.ratioMT.value);
 		gl.uniform1i(this.shader.uDistrib, distrib);
 		gl.uniform1i(this.shader.uMode, gui.display_mode.value);
-		gl.uniform1i(this.shader.uRayAmount, gui.rayAmount.value);
 		
         gl.uniform1i(this.shader.samplerUniform, 0);
 	}
