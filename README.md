@@ -38,4 +38,4 @@
 - Ajout d'une skybox environnementale avec une liste pour la changer dynamiquement entre 3 options
 - Visualisation des effets de réflection et de réfraction entre l'objet et la skybox
 - Possibilité de combiner les effets de réflection et de réfraction avec un slider permettant de favoriser l'une ou l'autre
-- Ajout d'une liste d'options permettant de switcher entre les différents modes de rendus (Cook&Torrence, Réflection, Réfraction, Réflection&Réfraction)
+- Ajout d'une liste d'options permettant de visualiser les différents modes de rendus (Cook&Torrence, Réflection, Réfraction, Réflection&Réfraction)
