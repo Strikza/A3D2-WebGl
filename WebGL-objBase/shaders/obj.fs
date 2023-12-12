@@ -8,15 +8,15 @@ uniform float uRatioMT;
 uniform int   uDistrib;
 uniform int   uMode;
 uniform int   uRayAmount;
+uniform float uBrightness;
 
 uniform samplerCube uSampler;
 
 varying vec4 pos3D;
 varying vec3 lightSource;
 varying vec3 normal;
-
-
 varying mat4 vRMatrix;
+
 
 // FONCTIONS UTILITAIRES
 // ==============================================
@@ -48,22 +48,23 @@ float getRandom(){
 }
 
 // ==============================================
-mat3 getNewRotationMatrix(vec3 N, vec3 o){
+mat3 getNewRotationMatrix(vec3 N){
 	vec3 newRMatrix = vec3(1.0, 0.0, 0.0);
 
-	if (clampedDot(N,newRMatrix) > 0.9){
+	if (dot(N, newRMatrix) > 0.9){
 		newRMatrix = vec3(0.0, 1.0, 0.0);
 	}
 
-    vec3 j = normalize(cross(N,newRMatrix));
-    vec3 i = normalize(cross(j,N));
+    vec3 j = cross(N,newRMatrix);
+    vec3 i = cross(j,N);
 
     return mat3(i,j,N);
 }
 
 // ==============================================
-vec3 getMicroNormal(vec3 N, vec3 o){
-    mat3 localRMatrix = getNewRotationMatrix(N, o);
+vec3 getMicroNormal(vec3 N){
+
+	mat3 localRMatrix = getNewRotationMatrix(N);
 
     float phi = getRandom() * 2.0 * 3.1415;
 	float theta = atan( sqrt((-square(uSigma)) * log(1.0 - getRandom())) );
@@ -72,7 +73,7 @@ vec3 getMicroNormal(vec3 N, vec3 o){
     float y = sin(theta)*sin(phi);
     float z = cos(theta);
 
-    vec3 m = localRMatrix * normalize(vec3(x, y, z));
+    vec3 m = normalize(localRMatrix*vec3(x, y, z));
 
     return m;
 }
@@ -81,7 +82,7 @@ vec3 getMicroNormal(vec3 N, vec3 o){
 // ==============================================
 float fresnel(vec3 i, vec3 m){
 
-	float c = dot(i, m);
+	float c = abs(dot(i, m));
 	float g = sqrt(uRefract*uRefract + c*c - 1.0);
 
 	float gPc = g+c;
@@ -93,7 +94,7 @@ float fresnel(vec3 i, vec3 m){
 // ==============================================
 float beckmann(vec3 m, vec3 N){
 	
-	float cosTheta  = dot(N, normalize(m));
+	float cosTheta  = clampedDot(N, m);
 	float cosTheta2 = square(cosTheta);
 	float tanTheta2 = (1.0 - cosTheta2)/cosTheta2;
 	float sigma2    = square(uSigma);
@@ -129,8 +130,8 @@ float masquage(vec3 m, vec3 N, vec3 i, vec3 o){
 }
 
 // ==============================================
-vec4 reflection(vec3 o, vec3 N){
-    vec3 r = reflect(-o, N);
+vec4 reflection(vec3 o, vec3 u){
+    vec3 r = reflect(-o, u);
     r = vec3(vRMatrix * vec4(r, 1.0));
     return textureCube(uSampler, r.xzy);
 }
@@ -170,9 +171,8 @@ vec4 CookTorrance(vec3 o, vec3 i, vec3 N){
 		}
 		float G = masquage(m, N, i, o);
 
-		float cookTorance = F*D*G / 4.0*iN*oN;
-
-		colorCT = vec3(cookTorance, cookTorance, cookTorance);
+		float cookTorance = (F*D*G) / (4.0*iN*oN);
+		colorCT = vec3(cookTorance);
 	}
 	else{
 		colorCT = vec3(0.0, 0.0, 0.0);
@@ -188,45 +188,45 @@ vec4 CookTorrance(vec3 o, vec3 i, vec3 N){
 vec4 frosted_mirror_noFresnel(vec3 o, vec3 N, int rayAmount){
 	vec4 Lo = vec4(0.0);
 
-	for (int i = 0; i < 100; ++i) {
-		if (i >= rayAmount) break;
+	for (int j=0; j<100; ++j) {
+		if (j >= rayAmount) break;
 		
-        vec3 m = getMicroNormal(N, o);
+        vec3 m = getMicroNormal(N);
         Lo += reflection(o, m);
 	}
 	return Lo / float(rayAmount);
 }
 
-vec4 frosted_mirror_withFresnel(vec3 o, vec3 N, int rayAmount){
+// ==============================================
+vec4 frosted_mirror_withFresnel(vec3 o, vec3 N, int rayAmount, vec3 i2){
 	vec3 Lo = vec3(0.0);
-	
     int rayCpt = 0;
 
-	for (int i = 0; i < 100; ++i) {
-		if (i >= rayAmount) break;
+	for (int j=0; j<100; ++j) { 
+		if (j >= rayAmount) break;
 
-        vec3 m  = getMicroNormal(N, o);  
-        vec3 li = normalize(reflection(o, m).xyz);
-
-        vec3 iVec = normalize(reflect(-o, m));
+        vec3 m = getMicroNormal(N);
+        vec3 i = reflect(-o, m);
 		
-        float iN = clampedDot(iVec, N);
+		float mN = clampedDot(m, N);
+        float iN = clampedDot(i, N);
         float oN = clampedDot(o, N);
-        float mN = clampedDot(m, N);
-        float im = clampedDot(iVec, m);
+        float im = clampedDot(i, m);
         float om = clampedDot(o, m);
 
 		const float margin = 0.001;
 
         if(iN < margin || oN < margin || mN < margin || im < margin || om < margin) continue;
 
-        float F = fresnel(iVec, m);
+        float F = fresnel(i, m);
         float D = beckmann(m, N);
-        float G = masquage(m, N, iVec, o);
-        float Fr = (F * D * G) / (4.0 * iN * oN);
-        float pdf = D * mN;
+        float G = masquage(m, N, i, o);
+		
+        vec3 Li    = reflection(o, m).xyz;
+        float BRDF = (F*D*G) / (4.0 * iN * oN);
+        float pdf  = D * mN;
 
-        Lo += li * Fr * iN / pdf;
+        Lo += (Li*BRDF*iN/pdf)*uBrightness;
 
         rayCpt++;
     }
@@ -240,18 +240,21 @@ void main(void)
 	vec3 o =  normalize(vec3(-pos3D));
 	vec3 i = -lightSource;
 	vec3 N =  normalize(normal);
+	vec4 col;
 
 	if(uMode == 0){
-		gl_FragColor = CookTorrance(o, i, N);
+		col = CookTorrance(o, i, N);
 	} else if(uMode == 1){
-		gl_FragColor = reflection(o, N);
+		col = reflection(o, N);
 	} else if(uMode == 2){
-		gl_FragColor = refraction(o, N);
+		col = refraction(o, N);
 	} else if(uMode == 3){
-		gl_FragColor = reflect_refract(o, N);
+		col = reflect_refract(o, N);
 	} else if(uMode == 4){
-		gl_FragColor = frosted_mirror_noFresnel(o, N, uRayAmount);
+		col = frosted_mirror_noFresnel(o, N, uRayAmount);
 	} else if(uMode == 5){
-		gl_FragColor = frosted_mirror_withFresnel(o, N, uRayAmount);
+		col = frosted_mirror_withFresnel(o, N, uRayAmount, i);
 	}
+
+	gl_FragColor = col;
 }
