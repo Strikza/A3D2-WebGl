@@ -198,7 +198,7 @@ vec4 frosted_mirror_noFresnel(vec3 o, vec3 N, int rayAmount){
 }
 
 // ==============================================
-vec4 frosted_mirror_withFresnel(vec3 o, vec3 N, int rayAmount, vec3 i2){
+vec4 frosted_mirror_withFresnel(vec3 o, vec3 N, int rayAmount){
 	vec3 Lo = vec3(0.0);
     int rayCpt = 0;
 
@@ -219,14 +219,13 @@ vec4 frosted_mirror_withFresnel(vec3 o, vec3 N, int rayAmount, vec3 i2){
         if(iN < margin || oN < margin || mN < margin || im < margin || om < margin) continue;
 
         float F = fresnel(i, m);
-        float D = beckmann(m, N);
         float G = masquage(m, N, i, o);
 		
-        vec3 Li    = reflection(o, m).xyz;
-        float BRDF = (F*D*G) / (4.0 * iN * oN);
-        float pdf  = D * mN;
+        vec3 Li    = reflection(o, m).xyz*uBrightness;
+        float BRDF = (F*G) / (4.0 * iN * oN); // |
+        float pdf  = mN;                      // | => On supprime le calcul de la Distribution par simplification
 
-        Lo += (Li*BRDF*iN/pdf)*uBrightness;
+        Lo += Li*BRDF*iN/pdf;
 
         rayCpt++;
     }
@@ -253,7 +252,7 @@ void main(void)
 	} else if(uMode == 4){
 		col = frosted_mirror_noFresnel(o, N, uRayAmount);
 	} else if(uMode == 5){
-		col = frosted_mirror_withFresnel(o, N, uRayAmount, i);
+		col = frosted_mirror_withFresnel(o, N, uRayAmount);
 	}
 
 	gl_FragColor = col;

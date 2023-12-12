@@ -2,11 +2,11 @@
 var gui = {
    
    // Slider
-   sigma  :    {value: 0.1, min: 0.01, max: 0.5,   step: 0.01, text: "Rugosité (sigma)"          },
-   refract:    {value: 1.5, min: 1.0,  max: 3,     step: 0.01, text: "Indice de réfraction"      },
-   ratioMT:    {value: 0.3, min: 0.0,  max: 1.0,   step: 0.01, text: "Ratio Transparence/Mirroir"},
-   rayAmount:  {value: 10,  min: 1,    max: 100,   step: 1,    text: "Nombre de rayons"},
-   brightness: {value: 1.0, min: 0.0,  max: 100.0, step: 1.0,  text: "Luminosité"},
+   sigma  :    {value: 0.1, min: 0.01, max: 0.5,  step: 0.01, text: "Rugosité (sigma)"          },
+   refract:    {value: 1.5, min: 1.0,  max: 3,    step: 0.01, text: "Indice de réfraction"      },
+   ratioMT:    {value: 0.3, min: 0.0,  max: 1.0,  step: 0.01, text: "Ratio Transparence/Mirroir"},
+   rayAmount:  {value: 10,  min: 1,    max: 100,  step: 1,    text: "Nombre de rayons"},
+   brightness: {value: 1.0, min: 1.0,  max: 20.0, step: 0.1,  text: "Luminosité"},
 
    // Checkbox
    lockLight: {value: true, text: "Verrouiller la lumière"},
