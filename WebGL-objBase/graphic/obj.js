@@ -64,7 +64,6 @@ class objmesh {
 	setUniforms() {
 		mat4.identity(mvMatrix);
 		mat4.translate(mvMatrix, distCENTER);
-		//mat4.rotate(rotMatrix, 90.0, [1, 0, 0]);
 		mat4.multiply(mvMatrix, rotMatrix);
 		let distrib = window.localStorage.getItem("dShader");
 

@@ -44,11 +44,11 @@ float seed = 0.0;
 
 float getRandom(){
 	seed++;
-	return fract(sin(dot(pos3D.xy + seed, vec2(12.9898,78.233))) * 43758.5453123);
+	return fract(sin(dot(pos3D.xy + seed, vec2(12.9898, 78.233))) * 43758.5453123);
 }
 
 // ==============================================
-mat3 getNewRotationMatrix(vec3 N){
+mat3 getLocalRotationMatrix(vec3 N){
 	vec3 newRMatrix = vec3(1.0, 0.0, 0.0);
 
 	if (dot(N, newRMatrix) > 0.9){
@@ -63,17 +63,14 @@ mat3 getNewRotationMatrix(vec3 N){
 
 // ==============================================
 vec3 getMicroNormal(vec3 N){
-
-	mat3 localRMatrix = getNewRotationMatrix(N);
-
-    float phi = getRandom() * 2.0 * 3.1415;
+    float phi   = getRandom() * 2.0 * 3.1415;
 	float theta = atan( sqrt((-square(uSigma)) * log(1.0 - getRandom())) );
 
     float x = sin(theta)*cos(phi);
     float y = sin(theta)*sin(phi);
     float z = cos(theta);
 
-    vec3 m = normalize(localRMatrix*vec3(x, y, z));
+    vec3 m = normalize(getLocalRotationMatrix(N)*vec3(x, y, z));
 
     return m;
 }
@@ -92,7 +89,7 @@ float fresnel(vec3 i, vec3 m){
 }
 
 // ==============================================
-float beckmann(vec3 m, vec3 N){
+float D_beckmann(vec3 m, vec3 N){
 	
 	float cosTheta  = clampedDot(N, m);
 	float cosTheta2 = square(cosTheta);
@@ -106,7 +103,7 @@ float beckmann(vec3 m, vec3 N){
 }
 
 // ==============================================
-float walter_ggx(vec3 m, vec3 N){
+float D_walter_ggx(vec3 m, vec3 N){
 
 	float cosTheta  = dot(N, normalize(m));
 	float cosTheta2 = square(cosTheta);
@@ -119,7 +116,7 @@ float walter_ggx(vec3 m, vec3 N){
 }
 
 // ==============================================
-float masquage(vec3 m, vec3 N, vec3 i, vec3 o){
+float G_beckmann(vec3 m, vec3 N, vec3 i, vec3 o){
 
 	float nm = dot(N, m);
 
@@ -127,6 +124,19 @@ float masquage(vec3 m, vec3 N, vec3 i, vec3 o){
 	float Gi = 2.0*nm*dot(N, i) / dot(i, m);
 
 	return min(1.0, min(Go, Gi));
+}
+
+// ==============================================
+float G_walter_ggx(vec3 m, vec3 N){
+
+	float nm = dot(N, m);
+	if(nm < 0.2) return 0.0;
+
+	float cosTheta2 = square(nm);
+	float tanTheta2 = (1.0 - cosTheta2)/cosTheta2;
+	float sigma2    = square(uSigma);
+
+	return 2.0/(1.0 + sqrt(1.0 + sigma2*tanTheta2));
 }
 
 // ==============================================
@@ -163,13 +173,15 @@ vec4 CookTorrance(vec3 o, vec3 i, vec3 N){
 	if(iN != 0.0 || oN != 0.0){
 		float F = fresnel(i,m);
 		float D;
+		float G;
 		if(uDistrib == 0){
-			D = beckmann(m, N);
+			D = D_beckmann(m, N);
+			G = G_beckmann(m, N, i, o);
 		}
 		else{
-			D = walter_ggx(m, N);
+			D = D_walter_ggx(m, N);
+			G = G_walter_ggx(m, N);
 		}
-		float G = masquage(m, N, i, o);
 
 		float cookTorance = (F*D*G) / (4.0*iN*oN);
 		colorCT = vec3(cookTorance);
@@ -219,9 +231,9 @@ vec4 frosted_mirror_withFresnel(vec3 o, vec3 N, int rayAmount){
         if(iN < margin || oN < margin || mN < margin || im < margin || om < margin) continue;
 
         float F = fresnel(i, m);
-        float G = masquage(m, N, i, o);
+        float G = G_beckmann(m, N, i, o);
 		
-        vec3 Li    = reflection(o, m).xyz*uBrightness;
+        vec3  Li   = reflection(o, m).xyz*uBrightness;
         float BRDF = (F*G) / (4.0 * iN * oN); // |
         float pdf  = mN;                      // | => On supprime le calcul de la Distribution par simplification
 
