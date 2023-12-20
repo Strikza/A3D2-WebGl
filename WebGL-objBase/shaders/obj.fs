@@ -63,8 +63,19 @@ mat3 getLocalRotationMatrix(vec3 N){
 
 // ==============================================
 vec3 getMicroNormal(vec3 N){
-    float phi   = getRandom() * 2.0 * 3.1415;
-	float theta = atan( sqrt((-square(uSigma)) * log(1.0 - getRandom())) );
+	float phi;
+	float theta;
+	float xi1 = getRandom();
+	float xi2 = getRandom();
+
+	if(uDistrib == 0){
+		phi   = xi1 * 2.0 * 3.1415;
+		theta = atan( sqrt((-square(uSigma)) * log(1.0 - xi2)) );
+	}
+	else{
+		phi   = xi1 * 2.0 * 3.1415;
+		theta = atan( (uSigma*sqrt(xi2)/(sqrt(1.0 - xi2))));
+	}
 
     float x = sin(theta)*cos(phi);
     float y = sin(theta)*sin(phi);
@@ -231,7 +242,13 @@ vec4 frosted_mirror_withFresnel(vec3 o, vec3 N, int rayAmount){
         if(iN < margin || oN < margin || mN < margin || im < margin || om < margin) continue;
 
         float F = fresnel(i, m);
-        float G = G_beckmann(m, N, i, o);
+        float G;
+		if(uDistrib == 0){
+			G = G_beckmann(m, N, i, o);
+		}
+		else{
+			G = G_walter_ggx(m, N);
+		}
 		
         vec3  Li   = reflection(o, m).xyz*uBrightness;
         float BRDF = (F*G) / (4.0 * iN * oN); // |
