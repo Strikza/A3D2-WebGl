@@ -45,6 +45,7 @@ var gui = {
          "Miroir et Transparence",
          "Miroir dépoli sans Fresnel",
          "Miroir dépoli avec Fresnel",
+         "Transparence dépoli",
       ], 
       type: "display",
       text: "Choisissez un mode"

@@ -39,3 +39,13 @@
 - Visualisation des effets de réflection et de réfraction entre l'objet et la skybox
 - Possibilité de combiner les effets de réflection et de réfraction avec un slider permettant de favoriser l'une ou l'autre
 - Ajout d'une liste d'options permettant de switcher entre les différents modes de rendus (Cook&Torrence, Réflection, Réfraction, Réflection&Réfraction)
+
+
+# INTRO
+- Rappel des objectifs de la section
+- Ce qu'on a fait, les résultats (pas tout)
+- Une phrase par partie
+
+# CONCLU
+- Comme l'intro, mais écrit différement
+- Perspectives futures
