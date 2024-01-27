@@ -31,7 +31,8 @@ var gui = {
          "sphere",
          "cube",
          "evoli",
-         "hericendre"
+         "hericendre",
+         "plane"
       ], 
       type: "obj", 
       text: "Choisissez un objet"

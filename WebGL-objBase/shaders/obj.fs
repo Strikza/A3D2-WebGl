@@ -191,7 +191,7 @@ float BRDF(vec3 i, vec3 o, vec3 hr, vec3 N){
 			G = G_walter_ggx(hr, N);
 		}
 
-		brdf = ((1.0-F)*D*G) / (4.0*iN*oN);
+		brdf = (F*D*G) / (4.0*iN*oN);
 	}
 
 	return brdf;
