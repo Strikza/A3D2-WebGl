@@ -5,7 +5,6 @@ uniform vec3  uLightSource;
 uniform vec3  uMaterial;
 uniform float uSigma;
 uniform float uRefract;
-uniform float uRatioMT;
 uniform int   uDistrib;
 uniform int   uMode;
 uniform int   uRayAmount;
@@ -18,6 +17,7 @@ varying vec3 normal;
 varying mat4 vRMatrix;
 
 float PI = 3.1415;
+
 
 // FONCTIONS UTILITAIRES
 // ==============================================
@@ -50,31 +50,31 @@ float getRandom(){
 
 // ==============================================
 mat3 getLocalRotationMatrix(vec3 N){
-	vec3 newRMatrix = vec3(1.0, 0.0, 0.0);
+	vec3 i_temp = vec3(1.0, 0.0, 0.0);
 
-	if (dot(N, newRMatrix) > 0.9){
-		newRMatrix = vec3(0.0, 1.0, 0.0);
+	if (dot(N, i_temp) > 0.9){
+		i_temp = vec3(0.0, 1.0, 0.0);
 	}
 
-    vec3 j = cross(N,newRMatrix);
-    vec3 i = cross(j,N);
+    vec3 j = cross(N, i_temp);
+    vec3 i = cross(j, N);
 
     return mat3(i,j,N);
 }
 
 // ==============================================
-vec3 getMicroNormal(vec3 N){
+vec3 getMicroNormal(){
 	float phi;
 	float theta;
 	float xi1 = getRandom();
 	float xi2 = getRandom();
 
 	if(uDistrib == 0){
-		phi   = xi1 * 2.0 * PI;                               // => Microfacette pour Backmann
+		phi   = xi1 * 2.0 * PI;                                   // => Microfacette pour Beckmann
 		theta = atan( sqrt((-square(uSigma)) * log(1.0 - xi2)) ); //
 	}
 	else{
-		phi   = xi1 * 2.0 * PI;                          // => Microfacette pour Walter GGX
+		phi   = xi1 * 2.0 * PI;                              // => Microfacette pour Walter GGX
 		theta = atan( (uSigma*sqrt(xi2)/(sqrt(1.0 - xi2)))); //
 	}
 
@@ -82,10 +82,10 @@ vec3 getMicroNormal(vec3 N){
     float y = sin(theta)*sin(phi);
     float z = cos(theta);
 
-    vec3 m = normalize(getLocalRotationMatrix(N)*vec3(x, y, z));
-
-    return m;
+    return vec3(x, y, z);
 }
+
+
 
 // BRDF - BTDF - BSDF
 // ==============================================
@@ -239,11 +239,12 @@ float BTDF(vec3 i, vec3 o, vec3 ht, vec3 N){
 }
 
 
+
 // COOK & TORRANCE
 // ==============================================
 vec4 CookTorrance(vec3 o, vec3 i, vec3 N){
 
-	vec3 m  = normalize(o + i);
+	vec3 m = normalize(o + i);
 	vec3 colorCT = vec3(BRDF(i, o, m, N));
 
 	vec3 col = uMaterial * dot(N, i) + colorCT/PI; // Lambert rendering with Cook & Torrance
@@ -271,48 +272,63 @@ vec4 refraction(vec3 o, vec3 N){
 }
 
 // ==============================================
-vec4 reflect_refract(vec3 o, vec3 N){
-	vec4 T = refraction(o, N) * uRatioMT;
-	vec4 M = reflection(o, N) * (1.0-uRatioMT);
+vec4 reflect_refract_fresnel(vec3 o, vec3 N){
 
-	return M+T;
+	vec3 i = reflect(-o, N);
+	float fresnel = Fresnel(i, N);
+
+	vec4 colorI = reflection(o, N);
+	vec4 colorT = refraction(o, N);
+
+	return colorI*fresnel + colorT*(1.0 - fresnel);
 }
 
 
 
-// FROSTED MIRRORS
+// FROSTED MIRRORS & REFRACTIONS
 // ==============================================
-vec4 frosted_mirror_noFresnel(vec3 o, vec3 N, int rayAmount){
+vec4 frosted_mirror(vec3 o, vec3 N, int rayAmount){
 	vec4 Lo = vec4(0.0);
 
 	for (int j=0; j<100; ++j) {
 		if (j >= rayAmount) break;
 		
-        vec3 m = getMicroNormal(N);
+        vec3 m = getMicroNormal();
+		m = normalize(getLocalRotationMatrix(N)*m);
         Lo += reflection(o, m);
 	}
 	return Lo / float(rayAmount);
 }
 
 // ==============================================
-vec4 frosted_mirror_withFresnel(vec3 o, vec3 N, int rayAmount){
+vec4 frosted_mirror_withBRDF(vec3 o, vec3 N, int rayAmount){
 	vec3 Lo = vec3(0.0);
     int rayCpt = 0;
 
 	for (int j=0; j<100; ++j) { 
 		if (j >= rayAmount) break;
 
-        vec3 m = getMicroNormal(N);
+        vec3 m = getMicroNormal();
+		m = normalize(getLocalRotationMatrix(N)*m);
         vec3 i = reflect(-o, m);
 		
 		float mN = clampedDot(m, N);
-        float iN  = clampedDot(i, N);
+		float iM = clampedDot(i, m);
+        float iN = clampedDot(i, N);
+		float oM = clampedDot(o, m);
+		float oN = clampedDot(o, N);
 
-		const float margin = 0.001;
+		const float margin = 0.01;
 
-        if(mN < margin || iN < margin) continue;
+        if(
+			mN < margin || 
+			iM < margin || 
+			iN < margin || 
+			oM < margin || 
+			oN < margin
+		) continue;
 
-		float D;  // Recalculé pour la pdf, même si déjà calculé pour la BRDF
+		float D; // Recalculé pour la pdf, même si déjà calculé pour la BRDF
 		if(uDistrib == 0){
 			D = D_beckmann(m, N);
 		}
@@ -339,15 +355,45 @@ vec4 frosted_refraction(vec3 o, vec3 N, int rayAmount){
 	for (int j=0; j<100; ++j) { 
 		if (j >= rayAmount) break;
 
-        vec3 m = getMicroNormal(N);
+        vec3 m = getMicroNormal();
+		m = normalize(getLocalRotationMatrix(N)*m);
+
+        vec3 Li = refraction(o, m).xyz;
+
+        Lo += Li;
+
+        rayCpt++;
+    }
+	
+	return vec4(Lo / float(rayCpt), 1.0);
+}
+
+// ==============================================
+vec4 frosted_refraction_withBSDF(vec3 o, vec3 N, int rayAmount){
+	vec3 Lo = vec3(0.0);
+    int rayCpt = 0;
+
+	for (int j=0; j<100; ++j) { 
+		if (j >= rayAmount) break;
+
+        vec3 m = getMicroNormal();
+		m = normalize(getLocalRotationMatrix(N)*m);
         vec3 i = reflect(-o, m);
 		
-		float mN  = clampedDot(m, N);
-        float iN  = clampedDot(i, N);
+		float mN = clampedDot(m, N);
+		float iM = clampedDot(i, m);
+        float iN = clampedDot(i, N);
+		float oM = clampedDot(o, m);
+		float oN = clampedDot(o, N);
+		const float margin = 0.01;
 
-		const float margin = 0.001;
-
-        if(iN < margin || mN < margin ) continue;
+        if(
+			mN < margin || 
+			iM < margin || 
+			iN < margin || 
+			oM < margin || 
+			oN < margin
+		) continue;
 
 		float D;
 		if(uDistrib == 0){
@@ -357,11 +403,12 @@ vec4 frosted_refraction(vec3 o, vec3 N, int rayAmount){
 			D = D_walter_ggx(m, N);
 		}
 		
-        vec3  Li  = refraction(o, m).xyz*uBrightness;
+		vec3  Li = reflection(o, m).xyz*uBrightness;
+        vec3  Lt = refraction(o, m).xyz*uBrightness;
+		vec3  BSDF = Li*BRDF(i, o, m, N)*iN + Lt*BTDF(i, o, m, N)*iN;
         float pdf = mN*D;
-		float BSDF = BTDF(i, o, m, N) + BRDF(i, o, m, N);
 
-        Lo += Li*BSDF/pdf;
+        Lo += BSDF/pdf;
 
         rayCpt++;
     }
@@ -375,7 +422,7 @@ vec4 frosted_refraction(vec3 o, vec3 N, int rayAmount){
 void main(void)
 {
 	vec3 o =  normalize(vec3(-pos3D));
-	vec3 i = -normalize(uLightSource);;
+	vec3 i = -normalize(uLightSource);
 	vec3 N =  normalize(normal);
 	vec4 col;
 
@@ -386,13 +433,15 @@ void main(void)
 	} else if(uMode == 2){
 		col = refraction(o, N);
 	} else if(uMode == 3){
-		col = reflect_refract(o, N);
+		col = reflect_refract_fresnel(o, N);
 	} else if(uMode == 4){
-		col = frosted_mirror_noFresnel(o, N, uRayAmount);
+		col = frosted_mirror(o, N, uRayAmount);
 	} else if(uMode == 5){
-		col = frosted_mirror_withFresnel(o, N, uRayAmount);
+		col = frosted_mirror_withBRDF(o, N, uRayAmount);
 	} else if(uMode == 6){
 		col = frosted_refraction(o, N, uRayAmount);
+	} else if(uMode == 7){
+		col = frosted_refraction_withBSDF(o, N, uRayAmount);
 	}
 
 	gl_FragColor = col;
