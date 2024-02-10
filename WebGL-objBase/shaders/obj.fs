@@ -63,7 +63,7 @@ mat3 getLocalRotationMatrix(vec3 N){
 }
 
 // ==============================================
-vec3 getMicroNormal(){
+vec3 getMicroNormal(vec3 N){
 	float phi;
 	float theta;
 	float xi1 = getRandom();
@@ -82,7 +82,9 @@ vec3 getMicroNormal(){
     float y = sin(theta)*sin(phi);
     float z = cos(theta);
 
-    return vec3(x, y, z);
+	vec3 m = vec3(x, y, z);
+
+    return normalize(getLocalRotationMatrix(N)*m);
 }
 
 
@@ -293,8 +295,8 @@ vec4 frosted_mirror(vec3 o, vec3 N, int rayAmount){
 	for (int j=0; j<100; ++j) {
 		if (j >= rayAmount) break;
 		
-        vec3 m = getMicroNormal();
-		m = normalize(getLocalRotationMatrix(N)*m);
+        vec3 m = getMicroNormal(N);
+
         Lo += reflection(o, m);
 	}
 	return Lo / float(rayAmount);
@@ -308,8 +310,7 @@ vec4 frosted_mirror_withBRDF(vec3 o, vec3 N, int rayAmount){
 	for (int j=0; j<100; ++j) { 
 		if (j >= rayAmount) break;
 
-        vec3 m = getMicroNormal();
-		m = normalize(getLocalRotationMatrix(N)*m);
+        vec3 m = getMicroNormal(N);
         vec3 i = reflect(-o, m);
 		
 		float mN = clampedDot(m, N);
@@ -328,7 +329,7 @@ vec4 frosted_mirror_withBRDF(vec3 o, vec3 N, int rayAmount){
 			oN < margin
 		) continue;
 
-		float D; // Recalculé pour la pdf, même si déjà calculé pour la BRDF
+		float D; // Calculé pour la pdf, même si déjà calculé pour la BRDF
 		if(uDistrib == 0){
 			D = D_beckmann(m, N);
 		}
@@ -355,8 +356,7 @@ vec4 frosted_refraction(vec3 o, vec3 N, int rayAmount){
 	for (int j=0; j<100; ++j) { 
 		if (j >= rayAmount) break;
 
-        vec3 m = getMicroNormal();
-		m = normalize(getLocalRotationMatrix(N)*m);
+        vec3 m = getMicroNormal(N);
 
         vec3 Li = refraction(o, m).xyz;
 
@@ -376,8 +376,7 @@ vec4 frosted_refraction_withBSDF(vec3 o, vec3 N, int rayAmount){
 	for (int j=0; j<100; ++j) { 
 		if (j >= rayAmount) break;
 
-        vec3 m = getMicroNormal();
-		m = normalize(getLocalRotationMatrix(N)*m);
+        vec3 m = getMicroNormal(N);
         vec3 i = reflect(-o, m);
 		
 		float mN = clampedDot(m, N);
