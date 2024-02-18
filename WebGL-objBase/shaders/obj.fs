@@ -19,27 +19,24 @@ varying mat4 vRMatrix;
 float PI = 3.1415;
 
 
-// FONCTIONS UTILITAIRES
+
+///////////////////////////
+// FONCTIONS UTILITAIRES //
+///////////////////////////
+
+// Met au carré le flottant en paramètre
 // ==============================================
 float square(float f){
 	return f*f;
 }
 
-// ==============================================
-float clampValue(float value, float min, float max){
-	float ret = value;
-
-	if(value < min) ret = min;
-	if(value > max) ret = max;
-
-	return ret;
-}
-
+// Renvoie le max entre 0 et le produit scalaire des vecteurs en paramètres
 // ==============================================
 float clampedDot(vec3 a, vec3 b){
 	return max(0.0, dot(a, b));
 }
 
+// Génère un nombre pseudo-aléatoire entre 0 et 1 (structuration dû pos3D)
 // ==============================================
 float seed = 0.0;
 
@@ -48,6 +45,7 @@ float getRandom(){
 	return fract(sin(dot(pos3D.xy + seed, vec2(12.9898, 78.233))) * 43758.5453123);
 }
 
+// Récupère la matrice de rotaion locale selon le vecteur en paramètre
 // ==============================================
 mat3 getLocalRotationMatrix(vec3 N){
 	vec3 i_temp = vec3(1.0, 0.0, 0.0);
@@ -62,6 +60,7 @@ mat3 getLocalRotationMatrix(vec3 N){
     return mat3(i,j,N);
 }
 
+// Renvoie la normal de la microfacette via un échantillonnage d'importance
 // ==============================================
 vec3 getMicroNormal(vec3 N){
 	float phi;
@@ -89,7 +88,11 @@ vec3 getMicroNormal(vec3 N){
 
 
 
-// BRDF - BTDF - BSDF
+////////////////////////
+// BRDF - BTDF - BSDF //
+////////////////////////
+
+// Renvoie la valeur de fresnel selon les vecteurs en paramètres
 // ==============================================
 float Fresnel(vec3 i, vec3 m){
 
@@ -102,6 +105,7 @@ float Fresnel(vec3 i, vec3 m){
 	return 0.5 * (square(gLc)/square(gPc)) * (1.0 + square(c * gPc - 1.0 ) / square(c * gLc + 1.0));
 }
 
+// Renvoie la valeur de la distribution de Beckmann selon les vecteurs en paramètres
 // ==============================================
 float D_beckmann(vec3 m, vec3 N){
 	
@@ -110,12 +114,13 @@ float D_beckmann(vec3 m, vec3 N){
 	float tanTheta2 = (1.0 - cosTheta2)/cosTheta2;
 	float sigma2    = square(uSigma);
 
-	float e = exp(-(tanTheta2) / (2.0*(sigma2)));
+	float e = exp(-(tanTheta2) / sigma2);
 	float denom = 3.14*sigma2*square(cosTheta2);
 
 	return 1.0/denom * e;
 }
 
+// Renvoie la valeur de la distribution de WalterGGX selon les vecteurs en paramètres
 // ==============================================
 float D_walter_ggx(vec3 m, vec3 N){
 
@@ -129,6 +134,8 @@ float D_walter_ggx(vec3 m, vec3 N){
 	return sigma2/denom;
 }
 
+// Renvoie la valeur du masquage VCavité selon les vecteurs en paramètres
+// -> C'est un masquage passe-partout, mais incorrect
 // ==============================================
 float G_vcavite(vec3 m, vec3 N, vec3 i, vec3 o){
 
@@ -140,6 +147,8 @@ float G_vcavite(vec3 m, vec3 N, vec3 i, vec3 o){
 	return min(1.0, min(Go, Gi));
 }
 
+// Renvoie la valeur du masquage de Beckmann selon les vecteurs en paramètres
+// -> Fonction réalisée avec l'article EGSR07
 // ==============================================
 float G_beckmann(vec3 m, vec3 N){
 
@@ -157,6 +166,8 @@ float G_beckmann(vec3 m, vec3 N){
 	}
 }
 
+// Renvoie la valeur du masquage de WalterGGX selon les vecteurs en paramètres
+// -> Fonction réalisée avec l'article EGSR07
 // ==============================================
 float G_walter_ggx(vec3 m, vec3 N){
 
@@ -170,93 +181,53 @@ float G_walter_ggx(vec3 m, vec3 N){
 	return 2.0/(1.0 + sqrt(1.0 + sigma2*tanTheta2));
 }
 
+
+
+/////////////////////
+// COOK & TORRANCE //
+/////////////////////
+
+// Calcul de l'éclairement selon Cook&Torrance
 // ==============================================
-float BRDF(vec3 i, vec3 o, vec3 hr, vec3 N){
+vec4 CookTorrance(vec3 o, vec3 i, vec3 N){
+
+	vec3 m     = normalize(o + i);
 	float brdf = 0.0;
 
 	float iN = clampedDot(i, N);
 	float oN = clampedDot(o, N);
-
 	const float margin = 0.001;
 
 	if(iN > margin && oN > margin){
-		float F = Fresnel(i, hr);
+		float F = Fresnel(i, m);
 		float D;
 		float G;
 		if(uDistrib == 0){
-			D = D_beckmann(hr, N);
-			G = G_beckmann(hr, N);
-			// G = G_vcavite(hr, N, i, o); // Masquage passe-partout, mais incorrect
+			D = D_beckmann(m, N);
+			G = G_beckmann(m, N);
 		}
 		else{
-			D = D_walter_ggx(hr, N);
-			G = G_walter_ggx(hr, N);
+			D = D_walter_ggx(m, N);
+			G = G_walter_ggx(m, N);
 		}
 
 		brdf = (F*D*G) / (4.0*iN*oN);
 	}
+	vec3 colorCT = vec3(brdf);
 
-	return brdf;
-}
-
-// ==============================================
-float BTDF(vec3 i, vec3 o, vec3 ht, vec3 N){
-
-	float btdf = 0.0;
-
-	float iHt = clampedDot(i, ht);
-	float iN  = clampedDot(i, N);
-	float oHt = clampedDot(o, ht);
-	float oN  = clampedDot(o, N);
-
-	float d_iHt = dot(i, ht);
-	float d_oHt = dot(o, ht);
-
-	const float margin = 0.001;
-
-	if(iN  > margin && 
-	   oN  > margin && 
-	   iHt > margin && 
-	   oHt > margin && 
-	   d_iHt > margin && 
-	   d_oHt > margin
-	   ){
-		float F = Fresnel(i, ht);
-		float D;
-		float G;
-		if(uDistrib == 0){
-			D = D_beckmann(ht, N);
-			G = G_beckmann(ht, N);
-			// G = G_vcavite(ht, N, i, o); // Masquage passe-partout, mais incorrect
-		}
-		else{
-			D = D_walter_ggx(ht, N);
-			G = G_walter_ggx(ht, N);
-		}
-
-		btdf = (iHt*oHt / iN*oN) * ((square(uRefract) * (1.0 - F)*G*D) / square(d_iHt + uRefract*d_oHt));
-	}
-
-	return btdf;
-}
-
-
-
-// COOK & TORRANCE
-// ==============================================
-vec4 CookTorrance(vec3 o, vec3 i, vec3 N){
-
-	vec3 m = normalize(o + i);
-	vec3 colorCT = vec3(BRDF(i, o, m, N));
-
-	vec3 col = uMaterial * dot(N, i) + colorCT/PI; // Lambert rendering with Cook & Torrance
+	vec3 col = uMaterial * dot(N, i) + colorCT/PI; // Rendu de Lambert avec Cook & Torrance
 	
 	return vec4(col, 1.0);
 }
 
 
 
-// REFLECT & REFRACT
+///////////////////////
+// REFLECT & REFRACT //
+///////////////////////
+
+// Réflection de la skybox selon les vecteurs en paramètres
+// -> Utilisée pour le mirroir
 // ==============================================
 vec4 reflection(vec3 o, vec3 u){
     vec3 r = reflect(-o, u);
@@ -265,6 +236,8 @@ vec4 reflection(vec3 o, vec3 u){
     return textureCube(uSampler, r.xzy);
 }
 
+// Réfraction de la skybox selon les vecteurs en paramètres
+// -> Utilisée pour la transparence
 // ==============================================
 vec4 refraction(vec3 o, vec3 N){
     vec3 r = refract(-o, N, 1.0/uRefract);
@@ -273,21 +246,26 @@ vec4 refraction(vec3 o, vec3 N){
     return textureCube(uSampler, r.xzy);
 }
 
+// Réflection et Réfraction selon un facteur fresnel
 // ==============================================
 vec4 reflect_refract_fresnel(vec3 o, vec3 N){
 
 	vec3 i = reflect(-o, N);
 	float fresnel = Fresnel(i, N);
 
-	vec4 colorI = reflection(o, N);
-	vec4 colorT = refraction(o, N);
+	vec4 Li = reflection(o, N);
+	vec4 Lt = refraction(o, N);
 
-	return colorI*fresnel + colorT*(1.0 - fresnel);
+	return Li*fresnel + Lt*(1.0 - fresnel);
 }
 
 
 
-// FROSTED MIRRORS & REFRACTIONS
+///////////////////////////////////
+// FROSTED MIRRORS & REFRACTIONS //
+///////////////////////////////////
+
+// Simple mirroir dépoli avec échantillonnage d'importance, et sans autre facteur
 // ==============================================
 vec4 frosted_mirror(vec3 o, vec3 N, int rayAmount){
 	vec4 Lo = vec4(0.0);
@@ -302,6 +280,7 @@ vec4 frosted_mirror(vec3 o, vec3 N, int rayAmount){
 	return Lo / float(rayAmount);
 }
 
+// Mirroir dépoli avec échantillonnage d'importance, utilisant la BRDF
 // ==============================================
 vec4 frosted_mirror_withBRDF(vec3 o, vec3 N, int rayAmount){
 	vec3 Lo = vec3(0.0);
@@ -314,33 +293,33 @@ vec4 frosted_mirror_withBRDF(vec3 o, vec3 N, int rayAmount){
         vec3 i = reflect(-o, m);
 		
 		float mN = clampedDot(m, N);
-		float iM = clampedDot(i, m);
         float iN = clampedDot(i, N);
-		float oM = clampedDot(o, m);
 		float oN = clampedDot(o, N);
-
 		const float margin = 0.01;
 
         if(
 			mN < margin || 
-			iM < margin || 
 			iN < margin || 
-			oM < margin || 
 			oN < margin
 		) continue;
 
-		float D; // Calculé pour la pdf, même si déjà calculé pour la BRDF
+		float F = Fresnel(i, m);
+		float D;
+		float G;
 		if(uDistrib == 0){
 			D = D_beckmann(m, N);
+			G = G_beckmann(m, N);
 		}
 		else{
 			D = D_walter_ggx(m, N);
+			G = G_walter_ggx(m, N);
 		}
-		
-        vec3  Li  = reflection(o, m).xyz*uBrightness;
-        float pdf = mN*D;
 
-        Lo += Li*BRDF(i, o, m, N)*iN/pdf;
+		float brdf = (F*D*G) / (4.0*iN*oN);
+        vec3  Li   = reflection(o, m).xyz*uBrightness;
+        float pdf  = mN*D;
+
+        Lo += Li*brdf*iN/pdf;
 
         rayCpt++;
     }
@@ -348,6 +327,7 @@ vec4 frosted_mirror_withBRDF(vec3 o, vec3 N, int rayAmount){
 	return vec4(Lo / float(rayCpt), 1.0);
 }
 
+// Simple transparence dépolie avec échantillonnage d'importance, sans autre facteur
 // ==============================================
 vec4 frosted_refraction(vec3 o, vec3 N, int rayAmount){
 	vec3 Lo = vec3(0.0);
@@ -368,6 +348,8 @@ vec4 frosted_refraction(vec3 o, vec3 N, int rayAmount){
 	return vec4(Lo / float(rayCpt), 1.0);
 }
 
+// Transparence dépolie avec échantillonnage d'importance, utilisant la BSDF
+// -> Fonction réalisée avec l'article EGSR07
 // ==============================================
 vec4 frosted_refraction_withBSDF(vec3 o, vec3 N, int rayAmount){
 	vec3 Lo = vec3(0.0);
@@ -394,18 +376,26 @@ vec4 frosted_refraction_withBSDF(vec3 o, vec3 N, int rayAmount){
 			oN < margin
 		) continue;
 
+		float F = Fresnel(i, m);
 		float D;
+		float G;
 		if(uDistrib == 0){
 			D = D_beckmann(m, N);
+			G = G_beckmann(m, N);
 		}
 		else{
 			D = D_walter_ggx(m, N);
+			G = G_walter_ggx(m, N);
 		}
-		
-		vec3  Li = reflection(o, m).xyz*uBrightness;
-        vec3  Lt = refraction(o, m).xyz*uBrightness;
-		vec3  BSDF = Li*BRDF(i, o, m, N)*iN + Lt*BTDF(i, o, m, N)*iN;
-        float pdf = mN*D;
+
+		float brdf = (F*D*G) / (4.0*iN*oN);
+		vec3  Li   = reflection(o, m).xyz*uBrightness;
+
+		float btdf = (iM*oM / iN*oN) * ((square(uRefract) * (1.0 - F)*G*D) / square(iM + uRefract*oM));
+        vec3  Lt   = refraction(o, m).xyz*uBrightness;
+
+		vec3  BSDF = Li*brdf*iN + Lt*btdf*iN;
+        float pdf  = mN*D;
 
         Lo += BSDF/pdf;
 
@@ -417,7 +407,10 @@ vec4 frosted_refraction_withBSDF(vec3 o, vec3 N, int rayAmount){
 
 
 
-// ==============================================
+//////////
+// MAIN //
+//////////
+
 void main(void)
 {
 	vec3 o =  normalize(vec3(-pos3D));

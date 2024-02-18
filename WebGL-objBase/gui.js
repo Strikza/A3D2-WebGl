@@ -7,9 +7,6 @@ var gui = {
    rayAmount:  {value: 10,  min: 1,    max: 100,  step: 1,    text: "Nombre de rayons"},
    brightness: {value: 1.0, min: 1.0,  max: 20.0, step: 0.1,  text: "Luminosité"},
 
-   // Checkbox
-   lockLight: {value: true, text: "Verrouiller la lumière"},
-
    //Toggle
    RefractOrReflect: {value: true, text: "Réflection  ", text2: "  Réfraction"},
 
@@ -82,7 +79,7 @@ function initGui() {
    gui_slider(sec, gui.rayAmount);
    gui_slider(sec, gui.brightness);
    gui_vspace(sec);
-   gui_text(sec, "Facteur D (shader)");
+   gui_text(sec, "Choix de la Distribution");
    gui_radiobutton(sec, gui.beckmann, "dShader", true);
    gui_radiobutton(sec, gui.ggx,      "dShader"      );
    gui_vspace(sec);
@@ -95,7 +92,6 @@ function initGui() {
 
    // Ohter options
    sec = gui_section("Autres options");
-   gui_checkbox(sec, gui.lockLight);
    gui_select(sec, gui.display_mode);
    gui_select(sec, gui.skybox_choice);
    gui_vspace(sec);

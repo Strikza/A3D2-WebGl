@@ -5,6 +5,8 @@
 var mouseDown  = false;
 var lastMouseX = null;
 var lastMouseY = null;
+var deltaX = 0.0;
+var deltaY = 0.0;
 var rotY = 0;
 var rotX = -1;
 
@@ -25,6 +27,16 @@ window.requestAnimFrame = (function()
 
 // =====================================================
 function tick() {
+	deltaX = deltaX*0.95;
+	deltaY = deltaY*0.95;
+
+	rotY += degToRad(deltaX / 5);
+	rotX += degToRad(deltaY / 5);
+
+	mat4.identity(rotMatrix);
+	mat4.rotate(rotMatrix, rotX, [1, 0, 0]);
+	mat4.rotate(rotMatrix, rotY, [0, 0, 1]);
+
 	requestAnimFrame(tick);
 	drawScene();
 }
@@ -37,12 +49,7 @@ function degToRad(degrees) {
 
 // =====================================================
 function handleMouseWheel(event) {
-	if(!gui.lockLight.value){
-		lightSource[2] += event.deltaY/100.0;;
-	}
-	else{
-		distCENTER[2] -= event.deltaY/1000.0;
-	}
+	distCENTER[2] -= event.deltaY/1000.0;
 }
 
 // =====================================================
@@ -65,32 +72,16 @@ function handleMouseMove(event) {
 	if (!mouseDown) return;
 
 	var newX = event.clientX;
-	var newY = event.clientY;	
-	var deltaX = newX - lastMouseX;
-	var deltaY = newY - lastMouseY;
-	
-	if(event.shiftKey) {
-		if(!gui.lockLight.value){
-			lightSource[2] += deltaY/10.0;
-		}
-		else{
-			distCENTER[2] += deltaY/100.0;
-		}
-	} else {
+	var newY = event.clientY;
+	deltaX = newX - lastMouseX;
+	deltaY = newY - lastMouseY;
 
-		if(!gui.lockLight.value){
-			lightSource[0] -= deltaX/10.0;
-			lightSource[1] += deltaY/10.0;
-		}
-		else{
-			rotY += degToRad(deltaX / 5);
-			rotX += degToRad(deltaY / 5);
+	rotY += degToRad(deltaX / 5);
+	rotX += degToRad(deltaY / 5);
 
-			mat4.identity(rotMatrix);
-			mat4.rotate(rotMatrix, rotX, [1, 0, 0]);
-			mat4.rotate(rotMatrix, rotY, [0, 0, 1]);
-		}
-	}
+	mat4.identity(rotMatrix);
+	mat4.rotate(rotMatrix, rotX, [1, 0, 0]);
+	mat4.rotate(rotMatrix, rotY, [0, 0, 1]);
 	
 	lastMouseX = newX
 	lastMouseY = newY;

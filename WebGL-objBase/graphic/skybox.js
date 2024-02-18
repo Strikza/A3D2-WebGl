@@ -135,7 +135,7 @@ class skybox {
      // --------------------------------------------
 	setUniforms() {
 		mat4.identity(mvMatrix);
-		mat4.multiply(mvMatrix, rotMatrix);
+        mat4.multiply(mvMatrix, rotMatrix);
 
 		gl.uniformMatrix4fv(this.shader.mvMatrixUniform, false, mvMatrix);
 		gl.uniformMatrix4fv(this.shader.pMatrixUniform,  false, pMatrix);
