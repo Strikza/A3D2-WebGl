@@ -41,11 +41,24 @@
 - Ajout d'une liste d'options permettant de switcher entre les différents modes de rendus (Cook&Torrence, Réflection, Réfraction, Réflection&Réfraction)
 
 
-# INTRO
-- Rappel des objectifs de la section
-- Ce qu'on a fait, les résultats (pas tout)
-- Une phrase par partie
+# <u>Jalon 3</u>
+### Consignes :
+- Visualisation de la sphère (ou d'un autre objet) miroir parfait, et rugueux (une option, sans Fresnel)
+- Avec une interface graphique pour contrôler les différents paramètres
+- Avoir la même visualisation mais en intégrant Fresnel et le calcul correct de l'intégration pour des microfacettes avec un indice de réfraction ;
+- Vous pouvez laisser les options des deux premiers jalons :
+    - transparence (gérée avec Ni)
+    - Cook-Torrance avec une source (gérée avec Ni et la rugosité sigma)
 
-# CONCLU
-- Comme l'intro, mais écrit différement
-- Perspectives futures
+#### Optionnel (Bonus) => voyez l'article de B. Walter 2007 EGSR :
+- Utiliser la distribution GGX au lieu de celle de Beckmann (facile)
+- Utiliser la fonction G de GGX (un peu moins facile, mais facile quand même)
+- Mettre en place la transparence avec des microfacettes rugueuses avec GGX, en plus de la réflexion que vous venez de faire avec les deux points précédents (un peu plus compliqué)
+
+
+### Travail réalisé :
+- Échantillonnage d'importance
+- Mirroir dépoli avec ou sans Fresnel
+- Tranparence dépolie avec ou sans Fresnel (selon l'article EGSR07)
+- Application de la distribution et du masquage de GGX, avec une option pour passer de Beckmann à GGX
+- Remplacement du masquage des V-cavités utilisé pour Beckmann par une fonction simplifiée de la véritable fonction de masquage de Beckmann (selon l'article EGSR07)
