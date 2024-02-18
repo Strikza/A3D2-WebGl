@@ -397,7 +397,7 @@ vec4 frosted_refraction_withBSDF(vec3 o, vec3 N, int rayAmount){
 		vec3  BSDF = Li*brdf*iN + Lt*btdf*iN;
         float pdf  = mN*D;
 
-        Lo += BSDF/pdf;
+        Lo += BSDF*oN/pdf;
 
         rayCpt++;
     }
