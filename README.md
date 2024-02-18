@@ -40,7 +40,7 @@
 - Possibilité de combiner les effets de réflection et de réfraction avec un slider permettant de favoriser l'une ou l'autre
 - Ajout d'une liste d'options permettant de switcher entre les différents modes de rendus (Cook&Torrence, Réflection, Réfraction, Réflection&Réfraction)
 
-
+---
 # <u>Jalon 3</u>
 ### Consignes :
 - Visualisation de la sphère (ou d'un autre objet) miroir parfait, et rugueux (une option, sans Fresnel)
