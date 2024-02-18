@@ -338,9 +338,9 @@ vec4 frosted_refraction(vec3 o, vec3 N, int rayAmount){
 
         vec3 m = getMicroNormal(N);
 
-        vec3 Li = refraction(o, m).xyz;
+	vec3 Lt = refraction(o, m).xyz;
 
-        Lo += Li;
+        Lo += Lt;
 
         rayCpt++;
     }
